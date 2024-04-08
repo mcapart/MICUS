@@ -4,10 +4,45 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 import cv2
+import face_recognition
+import dlib
 
-def analyzevideo(video_path):
+def face_rec2(vide_url):
+    detector = dlib.get_frontal_face_detector()
+    predictor = dlib.shape_predictor("Models/shape_predictor_68_face_landmarks.dat")
+    cap = cv2.VideoCapture(vide_url)
+
+    while True:
+        ret, frame = cap.read()
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Detect faces in the grayscale frame
+        faces = detector(gray)
+
+        # Draw rectangle around each detected face
+        for face in faces:
+            x, y, w, h = face.left(), face.top(), face.width(), face.height()
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            landmarks = predictor(gray, face)
+            # Landmark indices for eyes (36-47)
+            for n in range(0, landmarks.num_parts):
+                x_eye, y_eye = landmarks.part(n).x, landmarks.part(n).y
+                cv2.circle(frame, (x_eye, y_eye), 2, (0, 0, 255), -1)
+
+        # Display frame with rectangles drawn around faces
+        cv2.imshow('Face Tracking', frame)
+
+        # Break loop if 'q' key is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Release video capture and close windows
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+def analyze_video(video_path):
     # Open the video file
-    cap= cv2.VideoCapture(video_path)
+    cap = cv2.VideoCapture(video_path)
 
     # Check if the video file opened successfully
     if not cap.isOpened():
@@ -38,7 +73,7 @@ def analyzevideo(video_path):
 
 
     # Release the video capture object and close the OpenCV windows
-    video_capture.release()
+    cap.release()
     cv2.destroyAllWindows()
 
 
@@ -84,8 +119,9 @@ def detect_faces(video_path):
     video_capture.release()
     cv2.destroyAllWindows()
 
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    detect_faces('D:/User/Nerdex/Documentos/ITBA/Tesis/Videos/source_videos_part_16-001/source_videos/W135/BlendShape/camera_down/W135_BlendShape_camera_down.mp4')
+    face_rec2('/Users/micacapart/Documents/ITBA/Q22023/Proyecto Final/Videos/source_videos/W136/light_down/contempt/camera_front/W136_light_down_contempt_camera_front.mp4')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
