@@ -7,6 +7,7 @@ import cv2
 import face_recognition
 import dlib
 
+
 def face_rec2(vide_url):
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor("Models/shape_predictor_68_face_landmarks.dat")

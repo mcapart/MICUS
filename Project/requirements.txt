@@ -1,7 +1,0 @@
-click==8.1.7
-dlib @ file:///Users/runner/miniforge3/conda-bld/dlib-split_1712215413889/work
-face-recognition==1.3.0
-face-recognition-models==0.3.0
-numpy @ file:///Users/runner/miniforge3/conda-bld/numpy_1707225689808/work/dist/numpy-1.26.4-cp39-cp39-macosx_11_0_arm64.whl#sha256=989042d872faf31c0434bd99fec5ec09b5c5d9a0b8125edd0ae869c5d8851048
-opencv-python==4.9.0.80
-pillow==10.3.0
