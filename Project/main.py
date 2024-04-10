@@ -6,11 +6,11 @@
 import cv2
 import face_recognition
 import dlib
-
+from face_tracking.face import Face
 
 def face_rec2(vide_url):
     detector = dlib.get_frontal_face_detector()
-    predictor = dlib.shape_predictor("Models/shape_predictor_68_face_landmarks.dat")
+    predictor = dlib.shape_predictor("models/shape_predictor_68_face_landmarks.dat")
     cap = cv2.VideoCapture(vide_url)
 
     while True:
@@ -121,8 +121,50 @@ def detect_faces(video_path):
     cv2.destroyAllWindows()
 
 
+def gaze_tracker(video_path):
+    face = Face()
+    cap = cv2.VideoCapture(video_path)
+    detector = dlib.get_frontal_face_detector()
+
+    while True:
+        # We get a new frame from the webcam
+        _, frame = cap.read()
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Detect faces in the grayscale frame
+        faces = detector(gray)
+        face1 = faces[0] #TODO make it work for multiple faces
+        face.analyze(frame, face1)
+        frame = face.annotate()
+        text = ""
+
+        if face.gaze_tracker.is_blinking():
+            text = "Blinking"
+        elif face.gaze_tracker.is_right():
+            text = "Looking right"
+        elif face.gaze_tracker.is_left():
+            text = "Looking left"
+        elif face.gaze_tracker.is_center():
+            text = "Looking center"
+
+        cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
+
+        left_pupil = face.gaze_tracker.pupil_left_coords()
+        right_pupil = face.gaze_tracker.pupil_right_coords()
+        cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+        cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31),
+                    1)
+
+        cv2.imshow("Demo", frame)
+
+        if cv2.waitKey(1) == 27:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    face_rec2('/Users/micacapart/Documents/ITBA/Q22023/Proyecto Final/Videos/source_videos/W136/light_down/contempt/camera_front/W136_light_down_contempt_camera_front.mp4')
+    gaze_tracker('/Users/micacapart/Documents/ITBA/Q22023/Proyecto Final/Videos/source_videos/W136/light_down/contempt/camera_front/W136_light_down_contempt_camera_front.mp4')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
