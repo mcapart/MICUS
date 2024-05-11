@@ -1,4 +1,5 @@
 # This is a sample Python script.
+import argparse
 
 # Press Mayús+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -125,10 +126,14 @@ def gaze_tracker(video_path):
     face = Face()
     cap = cv2.VideoCapture(video_path)
     detector = dlib.get_frontal_face_detector()
+    blinks = 0
+    is_blinking = False
 
     while True:
         # We get a new frame from the webcam
         _, frame = cap.read()
+        if frame is None:
+            break
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         # Detect faces in the grayscale frame
         faces = detector(gray)
@@ -138,6 +143,7 @@ def gaze_tracker(video_path):
         text = ""
 
         if face.gaze_tracker.is_blinking():
+            is_blinking = True
             text = "Blinking"
         elif face.gaze_tracker.is_right():
             text = "Looking right"
@@ -145,6 +151,10 @@ def gaze_tracker(video_path):
             text = "Looking left"
         elif face.gaze_tracker.is_center():
             text = "Looking center"
+        if not face.gaze_tracker.is_blinking():
+            if is_blinking:
+                blinks += 1
+                is_blinking = False
 
         cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
 
@@ -161,10 +171,16 @@ def gaze_tracker(video_path):
 
     cap.release()
     cv2.destroyAllWindows()
+    print(blinks)
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    gaze_tracker('/Users/micacapart/Documents/ITBA/Q22023/Proyecto Final/Videos/source_videos/W136/light_down/contempt/camera_front/W136_light_down_contempt_camera_front.mp4')
+    parser = argparse.ArgumentParser(
+        prog='Face Tracking')
+    parser.add_argument('file_name')
+    args = parser.parse_args()
+    file_name = args.file_name
+    gaze_tracker(file_name)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
