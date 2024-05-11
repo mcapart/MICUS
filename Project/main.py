@@ -8,6 +8,7 @@ import cv2
 import face_recognition
 import dlib
 from face_tracking.face import Face
+from tqdm import tqdm
 
 def face_rec2(vide_url):
     detector = dlib.get_frontal_face_detector()
@@ -122,12 +123,23 @@ def detect_faces(video_path):
     cv2.destroyAllWindows()
 
 
-def gaze_tracker(video_path):
+def gaze_tracker(video_path: str):
     face = Face()
     cap = cv2.VideoCapture(video_path)
     detector = dlib.get_frontal_face_detector()
     blinks = 0
     is_blinking = False
+    video_name = video_path.split("/")[-1].split(".")[0]
+
+    results_file = open("./results/R-" + video_name, 'w')
+    frame_number = 0
+    number_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    original_fps = cap.get(cv2.CAP_PROP_FPS)
+    print("FPS ", original_fps)
+
+    progress_bar = tqdm(total=number_of_frames, desc="Processing frames", unit="frames")
+
 
     while True:
         # We get a new frame from the webcam
@@ -141,6 +153,12 @@ def gaze_tracker(video_path):
         face.analyze(frame, face1)
         frame = face.annotate()
         text = ""
+        timestamp_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
+        timestamp_sec = timestamp_ms / 1000.0
+
+        results_file.write(str(frame_number) + " " + str(timestamp_sec) + " " + str(face.gaze_tracker.eye_left.width) + " " +
+                           str(face.gaze_tracker.eye_left.height) + " " + str(face.gaze_tracker.eye_right.width) + " " +
+                           str(face.gaze_tracker.eye_right.height) + "\n")
 
         if face.gaze_tracker.is_blinking():
             is_blinking = True
@@ -164,7 +182,11 @@ def gaze_tracker(video_path):
         cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31),
                     1)
 
-        cv2.imshow("Demo", frame)
+        #cv2.imshow("Demo", frame)
+        frame_number += 1
+        progress_bar.update(1)
+        # image_path = f"images/frame_{frame_number}.jpg"
+        # cv2.imwrite(image_path, frame)
 
         if cv2.waitKey(1) == 27:
             break
@@ -172,6 +194,8 @@ def gaze_tracker(video_path):
     cap.release()
     cv2.destroyAllWindows()
     print(blinks)
+    results_file.close()
+    progress_bar.close()
 
 
 # Press the green button in the gutter to run the script.

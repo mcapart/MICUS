@@ -4,6 +4,7 @@ import cv2
 from gaze_tracking.pupil import Pupil
 import dlib
 
+
 class Eye(object):
     """
     This class creates a new frame to isolate the eye and
@@ -19,6 +20,8 @@ class Eye(object):
         self.center = None
         self.pupil = None
         self.landmark_points = None
+        self.width = None
+        self.height = None
 
         self._analyze(original_frame, landmarks, side, calibration)
 
@@ -84,12 +87,13 @@ class Eye(object):
 
         eye_width = math.hypot((left[0] - right[0]), (left[1] - right[1]))
         eye_height = math.hypot((top[0] - bottom[0]), (top[1] - bottom[1]))
+        self.width = eye_width
+        self.height = eye_height
 
         try:
             ratio = eye_width / eye_height
         except ZeroDivisionError:
             ratio = None
-
         return ratio
 
     def _analyze(self, original_frame, landmarks: dlib.full_object_detection, side, calibration):

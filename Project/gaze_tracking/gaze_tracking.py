@@ -15,8 +15,8 @@ class GazeTracking(object):
     """
 
     def __init__(self):
-        self.eye_left = None
-        self.eye_right = None
+        self.eye_left: Eye = None
+        self.eye_right: Eye = None
         self.calibration = Calibration()
         self.landmarks = None
         self.faces = []
