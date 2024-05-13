@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 from gaze_tracking.pupil import Pupil
 import dlib
+from scipy.spatial import distance as dist
 
 
 class Eye(object):
@@ -10,7 +11,7 @@ class Eye(object):
     This class creates a new frame to isolate the eye and
     initiates the pupil detection.
     """
-
+    # The first point is the one on the left, then 2 points for the top, the right and 2 points for the bottom
     LEFT_EYE_POINTS = [36, 37, 38, 39, 40, 41]
     RIGHT_EYE_POINTS = [42, 43, 44, 45, 46, 47]
 
@@ -22,6 +23,7 @@ class Eye(object):
         self.landmark_points = None
         self.width = None
         self.height = None
+        self.EAR = None
 
         self._analyze(original_frame, landmarks, side, calibration)
 
@@ -96,6 +98,21 @@ class Eye(object):
             ratio = None
         return ratio
 
+    def _EAR(self, landmarks, points):
+        eye_points = {}
+        for idx, p in enumerate(points):
+            eye_points[idx] = (landmarks.part(p).x, landmarks.part(p).y)
+
+        A = dist.euclidean(eye_points[1], eye_points[5])
+        B = dist.euclidean(eye_points[2], eye_points[4])
+        # compute the euclidean distance between the horizontal
+        # eye landmark (x, y)-coordinates
+        C = dist.euclidean(eye_points[0], eye_points[3])
+        # compute the eye aspect ratio
+        ear = (A + B) / (2.0 * C)
+        # return the eye aspect ratio
+        return ear
+
     def _analyze(self, original_frame, landmarks: dlib.full_object_detection, side, calibration):
         """Detects and isolates the eye in a new frame, sends data to the calibration
         and initializes Pupil object.
@@ -114,6 +131,8 @@ class Eye(object):
             return
 
         self.blinking = self._blinking_ratio(landmarks, points)
+        self.EAR = self._EAR(landmarks, points)
+        #print("blinking ", self.blinking, " ear ", self.EAR)
         self._isolate(original_frame, landmarks, points)
 
         if not calibration.is_complete():

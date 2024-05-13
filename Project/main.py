@@ -157,8 +157,9 @@ def gaze_tracker(video_path: str):
         timestamp_sec = timestamp_ms / 1000.0
 
         results_file.write(str(frame_number) + " " + str(timestamp_sec) + " " + str(face.gaze_tracker.eye_left.width) + " " +
-                           str(face.gaze_tracker.eye_left.height) + " " + str(face.gaze_tracker.eye_right.width) + " " +
-                           str(face.gaze_tracker.eye_right.height) + "\n")
+                           str(face.gaze_tracker.eye_left.height) + " " + str(face.gaze_tracker.eye_left.EAR)
+                           + " " + str(face.gaze_tracker.eye_right.width) + " " +
+                           str(face.gaze_tracker.eye_right.height) + " " + str(face.gaze_tracker.eye_right.EAR) + "\n")
 
         if face.gaze_tracker.is_blinking():
             is_blinking = True
