@@ -49,3 +49,7 @@ Thumbs.db
 *.mov
 *.wmv
 
+Project/results/*
+Project/results2/*
+Project/DFRes/*
+Project/images/*

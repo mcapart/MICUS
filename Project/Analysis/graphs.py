@@ -2,32 +2,8 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-
-def read_file(filename: str):
-    left_eye_heights = []
-    right_eye_heights = []
-    time_stamps = []
-    left_eye_ears = []
-    right_eye_ears = []
-
-    with open(filename, 'r') as results_file:
-        for line in results_file:
-            parts = line.strip().split(' ')
-            frame_number = int(parts[0])
-            time =  float(parts[1])
-            left_eye_height = float(parts[3])
-            left_eye_ear = float(parts[4])
-            right_eye_height = float(parts[6])
-            right_eye_ear = float(parts[7])
-
-
-            left_eye_heights.append(left_eye_height)
-            right_eye_heights.append(right_eye_height)
-            time_stamps.append(time)
-            left_eye_ears.append(left_eye_ear)
-            right_eye_ears.append(right_eye_ear)
-
-    return left_eye_heights, right_eye_heights, time_stamps, left_eye_ears, right_eye_ears
+from analisys import calculate_avg_derivatives, calculate_derivatives_peaks, calculate_peak_pairs
+from utils import read_eye_blink_file
 
 
 def plot_graphs_by_frame(left_eye_heights, right_eye_heights):
@@ -61,13 +37,6 @@ def plot_graphs_by_time(left_eye_heights, right_eye_heights, time_stamps):
     plt.ylabel('Left Eye Height')
     plt.title('Left Eye Height over time')
 
-    # Find local minimums for left eye
-    left_eye_minimums = find_local_minimums(time_stamps, left_eye_heights)
-    min_timestamps_left, min_heights_left = zip(*left_eye_minimums)
-    plt.scatter(min_timestamps_left, min_heights_left, color='red', marker='o', label='Local Minimums (Left Eye)', zorder=5)
-
-    plt.legend()
-
     # Plot right eye height by frame
     plt.subplot(1, 2, 2)
     plt.plot(time_stamps, right_eye_heights, marker='o', linestyle='-', label='Right Eye Height')
@@ -75,18 +44,13 @@ def plot_graphs_by_time(left_eye_heights, right_eye_heights, time_stamps):
     plt.ylabel('Right Eye Height')
     plt.title('Right Eye Height over time')
 
-    # Find local minimums for right eye
-    right_eye_minimums = find_local_minimums(time_stamps, right_eye_heights)
-    min_timestamps_right, min_heights_right = zip(*right_eye_minimums)
-    plt.scatter(min_timestamps_right, min_heights_right, color='red', marker='o', label='Local Minimums (Right Eye)', zorder=5)
-
     plt.legend()
 
     plt.tight_layout()
     plt.show()
 
 
-def plot_ears_by_time(left_eye_ears, right_eye_ears, time_stamps):
+def plot_ears_by_time(left_eye_ears, right_eye_ears, time_stamps, form: str = 'dlib'):
     plt.figure(figsize=(10, 5))
 
     max_value = max(max(left_eye_ears), max(right_eye_ears))
@@ -97,7 +61,7 @@ def plot_ears_by_time(left_eye_ears, right_eye_ears, time_stamps):
     plt.plot(time_stamps, left_eye_ears, marker='o', linestyle='-')
     plt.xlabel('Time (s)')
     plt.ylabel('Left Eye EARS')
-    plt.title('Left EARS Height over time')
+    plt.title('Left EARS Height over time - ' + form)
     plt.ylim(0, max_value)
 
     # Plot right eye height by frame
@@ -105,12 +69,11 @@ def plot_ears_by_time(left_eye_ears, right_eye_ears, time_stamps):
     plt.plot(time_stamps, right_eye_ears, marker='o', linestyle='-',)
     plt.xlabel('Time (s)')
     plt.ylabel('Right Eye EARS')
-    plt.title('Right Eye EARS over time')
+    plt.title('Right Eye EARS over time - ' + form)
     plt.ylim(0, max_value)
 
     plt.tight_layout()
     plt.show()
-
 
 
 def plot_derivative_ears(left_eye_ears, right_eye_ears, time_stamps):
@@ -148,6 +111,8 @@ def plot_derivative_ears(left_eye_ears, right_eye_ears, time_stamps):
 
     plt.tight_layout()
     plt.show()
+
+
 def plot_derivative_avg_ears(left_eye_ears, right_eye_ears, time_stamps):
     # Convert time_stamps to a NumPy array
     time_stamps = np.array(time_stamps)
@@ -173,7 +138,9 @@ def plot_derivative_avg_ears(left_eye_ears, right_eye_ears, time_stamps):
     plt.legend()
     plt.grid(True)
     plt.show()
-def plot_avg_ears_by_time(left_eye_ears, right_eye_ears, time_stamps):
+
+
+def plot_avg_ears_by_time(left_eye_ears, right_eye_ears, time_stamps, form: str = 'dlib'):
     # Convert time_stamps to a NumPy array
     time_stamps = np.array(time_stamps)
 
@@ -185,18 +152,45 @@ def plot_avg_ears_by_time(left_eye_ears, right_eye_ears, time_stamps):
 
     plt.xlabel('Time (s)')
     plt.ylabel('Average EARS')
-    plt.title('Average Eye Aspect Ratio (EARS) over Time')
+    plt.title('Average Eye Aspect Ratio (EARS) over Time - ' + form)
     plt.grid(True)
     plt.show()
-def find_local_minimums(timestamps, eye_heights):
-    local_minimums = []
 
-    # Iterate through the data excluding the first and last points
-    for i in range(1, len(eye_heights) - 1):
-        if eye_heights[i] < eye_heights[i - 1] and eye_heights[i] < eye_heights[i + 1]:
-            local_minimums.append((timestamps[i], eye_heights[i]))
 
-    return local_minimums
+def plot_derivative_avg_ears_with_peaks(left_eye_ears, right_eye_ears, time_stamps, form: str = "dlib"):
+    # Convert time_stamps to a NumPy array
+    time_stamps = np.array(time_stamps)
+    # Calculate the derivative of the average EARS values
+    avg_derivative = calculate_avg_derivatives(left_eye_ears, right_eye_ears, time_stamps)
+    # Calculate the midpoints of timestamps for plotting
+    midpoints = (time_stamps[:-1] + time_stamps[1:]) / 2
+    # Calculate peaks
+    all_peaks = calculate_derivatives_peaks(avg_derivative)
+    midpoints = (time_stamps[:-1] + time_stamps[1:]) / 2
+    peak_times = midpoints[all_peaks]
+    indexes = []
+    pairs = calculate_peak_pairs(all_peaks, midpoints, 0.3)
+
+    for pair in pairs:
+        left = pair[1]
+        index = np.where(peak_times == left)[0]
+        indexes.append(all_peaks[index][0])
+        right = pair[0]
+        index = np.where(peak_times == right)[0]
+        indexes.append(all_peaks[index][0])
+
+
+   # Plot the derivative of the average EARS
+    plt.plot(time_stamps, avg_derivative, label='Average EARS Derivative')
+    plt.plot(time_stamps[indexes], avg_derivative[indexes], "x", label='Peaks')
+
+    plt.xlabel('Time (s)')
+    plt.ylabel('Average EARS Derivative')
+    plt.title('Derivative of Average Eye Aspect Ratio (EARS) over Time - ' + form )
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
 
 
 if __name__ == '__main__':
@@ -205,11 +199,7 @@ if __name__ == '__main__':
     parser.add_argument('file_name')
     args = parser.parse_args()
     file_name = args.file_name
-    left_eye_heights, right_eye_heights, time_stamps, left_eye_ears, right_eye_ears= read_file(file_name)
-    #plot_graphs_by_frame(left_eye_heights, right_eye_heights)
-    #plot_graphs_by_time(left_eye_heights, right_eye_heights, time_stamps)
-    #plot_ears_by_time(left_eye_ears, right_eye_ears, time_stamps)
-    #plot_derivative_ears(left_eye_ears, right_eye_ears, time_stamps)
-    plot_derivative_avg_ears(left_eye_ears, right_eye_ears, time_stamps)
-    plot_avg_ears_by_time(left_eye_ears, right_eye_ears, time_stamps)
+    left_eye_heights, right_eye_heights, time_stamps, left_eye_ears, right_eye_ears, left_eye_ears2, right_eye_ears2 = \
+        read_eye_blink_file(file_name)
+
 

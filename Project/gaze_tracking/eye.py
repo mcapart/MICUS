@@ -4,6 +4,8 @@ import cv2
 from gaze_tracking.pupil import Pupil
 import dlib
 from scipy.spatial import distance as dist
+import mediapipe as mp
+mp_face_mesh=mp.solutions.face_mesh
 
 
 class Eye(object):
@@ -15,7 +17,21 @@ class Eye(object):
     LEFT_EYE_POINTS = [36, 37, 38, 39, 40, 41]
     RIGHT_EYE_POINTS = [42, 43, 44, 45, 46, 47]
 
-    def __init__(self, original_frame, landmarks, side, calibration):
+    FACEMESH_LEFT_EYE = frozenset([(263, 249), (249, 390), (390, 373), (373, 374),
+                                   (374, 380), (380, 381), (381, 382), (382, 362),
+                                   (263, 466), (466, 388), (388, 387), (387, 386),
+                                   (386, 385), (385, 384), (384, 398), (398, 362)])
+
+    FACEMESH_RIGHT_EYE = frozenset([(33, 7), (7, 163), (163, 144), (144, 145),
+                                    (145, 153), (153, 154), (154, 155), (155, 133),
+                                    (33, 246), (246, 161), (161, 160), (160, 159),
+                                    (159, 158), (158, 157), (157, 173), (173, 133)])
+    # 33 TO 133 IS THE TOP
+    mediapipe_left_eye = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246]
+    # 362 to 263 it the top
+    mediapipe_right_eye = [362, 398, 384, 385, 386, 387, 388, 466, 263, 249, 390, 373, 374, 380, 381, 382, ]
+
+    def __init__(self, original_frame, dlib_landmarks, media_pipe_landmarks, side, calibration):
         self.frame = None
         self.origin = None
         self.center = None
@@ -25,7 +41,7 @@ class Eye(object):
         self.height = None
         self.EAR = None
 
-        self._analyze(original_frame, landmarks, side, calibration)
+        self._analyze(original_frame, dlib_landmarks, media_pipe_landmarks, side, calibration)
 
     @staticmethod
     def _middle_point(p1, p2):
@@ -113,7 +129,38 @@ class Eye(object):
         # return the eye aspect ratio
         return ear
 
-    def _analyze(self, original_frame, landmarks: dlib.full_object_detection, side, calibration):
+    def calculate_enhanced_ear(self, landmarks, eye_indices):
+        """
+        Calculate an enhanced Eye Aspect Ratio (EAR) for the given eye landmarks.
+
+        Arguments:
+        - landmarks: List of landmark points detected by Mediapipe.
+        - eye_indices: List of indices for the eye landmarks.
+
+        Returns:
+        - ear: The calculated Eye Aspect Ratio.
+        """
+
+
+        eye_points = np.array([(landmarks.landmark[idx].x, landmarks.landmark[idx].y) for idx in eye_indices])
+
+        # Calculate the distances between the horizontal and vertical eye landmarks
+        A = dist.euclidean(eye_points[1], eye_points[15])
+        B = dist.euclidean(eye_points[2], eye_points[14])
+        C = dist.euclidean(eye_points[3], eye_points[13])
+        D = dist.euclidean(eye_points[4], eye_points[12])
+        E = dist.euclidean(eye_points[5], eye_points[11])
+        F = dist.euclidean(eye_points[6], eye_points[10])
+        G = dist.euclidean(eye_points[7], eye_points[9])
+        horizontal_dist = dist.euclidean(eye_points[0], eye_points[8])
+
+        # Calculate the average of the vertical distances
+        avg_vertical = (A + B + C + D + E + F + G) / 7.0
+
+        # Calculate the Eye Aspect Ratio
+        ear = avg_vertical / horizontal_dist
+        return ear
+    def _analyze(self, original_frame, dlib_landmarks: dlib.full_object_detection, media_pipe_landmarks, side, calibration):
         """Detects and isolates the eye in a new frame, sends data to the calibration
         and initializes Pupil object.
 
@@ -124,16 +171,25 @@ class Eye(object):
             calibration (calibration.Calibration): Manages the binarization threshold value
         """
         if side == 0:
-            points = self.LEFT_EYE_POINTS
+            dlib_points = self.LEFT_EYE_POINTS
+            mediapipe_points = self.mediapipe_left_eye
+            #TODO i think the mediapipe landmarks are inverted
         elif side == 1:
-            points = self.RIGHT_EYE_POINTS
+            dlib_points = self.RIGHT_EYE_POINTS
+            mediapipe_points = self.mediapipe_right_eye
         else:
             return
 
-        self.blinking = self._blinking_ratio(landmarks, points)
-        self.EAR = self._EAR(landmarks, points)
+        self.blinking = self._blinking_ratio(dlib_landmarks, dlib_points)
+        self.EAR = self._EAR(dlib_landmarks, dlib_points)
+        if media_pipe_landmarks is not None:
+            self.mediapipe_ear = self.calculate_enhanced_ear(media_pipe_landmarks, mediapipe_points)
+        else:
+            self.mediapipe_ear = -1
+        #print(self.mediapipe_ear, self.EAR)
+
         #print("blinking ", self.blinking, " ear ", self.EAR)
-        self._isolate(original_frame, landmarks, points)
+        self._isolate(original_frame, dlib_landmarks, dlib_points)
 
         if not calibration.is_complete():
             calibration.evaluate(self.frame, side)

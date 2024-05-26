@@ -1,5 +1,6 @@
 # This is a sample Python script.
 import argparse
+import os
 
 # Press Mayús+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -32,7 +33,7 @@ def face_rec2(vide_url):
                 cv2.circle(frame, (x_eye, y_eye), 2, (0, 0, 255), -1)
 
         # Display frame with rectangles drawn around faces
-        cv2.imshow('Face Tracking', frame)
+        #cv2.imshow('Face Tracking', frame)
 
         # Break loop if 'q' key is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -123,33 +124,169 @@ def detect_faces(video_path):
     cv2.destroyAllWindows()
 
 
-def gaze_tracker(video_path: str):
+def track_face(video_path: str):
     face = Face()
     cap = cv2.VideoCapture(video_path)
+    face_cascade = cv2.CascadeClassifier('./models/haarcascade_frontalface_default.xml')
     detector = dlib.get_frontal_face_detector()
-    blinks = 0
-    is_blinking = False
-    video_name = video_path.split("/")[-1].split(".")[0]
-
-    results_file = open("./results/R-" + video_name, 'w')
-    frame_number = 0
-    number_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     original_fps = cap.get(cv2.CAP_PROP_FPS)
     print("FPS ", original_fps)
 
-    progress_bar = tqdm(total=number_of_frames, desc="Processing frames", unit="frames")
-
-
+    dlib_found = 0
+    cascade_found = 0
+    both = 0
+    none = 0
+    frame_number = 0
+    number_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    print(number_of_frames)
+    video_name = video_path.split("/")[-1].split(".")[0]
     while True:
         # We get a new frame from the webcam
         _, frame = cap.read()
         if frame is None:
             break
+
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         # Detect faces in the grayscale frame
         faces = detector(gray)
-        face1 = faces[0] #TODO make it work for multiple faces
+        faces2 = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+        if len(faces) == 0 and len(faces2) == 0:
+            none += 1
+            continue
+        if len(faces) == 0 and len(faces2) > 0:
+            cascade_found += 1
+            face1 = faces2[0]
+            for (x, y, w, h) in faces2:
+                # Convert the rectangle to a dlib rectangle
+                face1 = dlib.rectangle(x, y, x + w, y + h)
+
+        if len(faces) > 0 and len(faces2) == 0:
+            dlib_found += 1
+            face1 = faces[0]
+
+        if len(faces) > 0 and len(faces2) > 0:
+            face1 = faces[0]
+            both += 1
+
+        # face1 = faces[0] #TODO make it work for multiple faces
+        face.analyze(frame, face1)
+        frame = face.annotate()
+
+        # if face.gaze_tracker.is_blinking():
+        #     is_blinking = True
+        #     text = "Blinking"
+        # elif face.gaze_tracker.is_right():
+        #     text = "Looking right"
+        # elif face.gaze_tracker.is_left():
+        #     text = "Looking left"
+        # elif face.gaze_tracker.is_center():
+        #     text = "Looking center"
+        # if not face.gaze_tracker.is_blinking():
+        #     if is_blinking:
+        #         blinks += 1
+        #         is_blinking = False
+        text = ""
+        cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
+
+        left_pupil = face.gaze_tracker.pupil_left_coords()
+        right_pupil = face.gaze_tracker.pupil_right_coords()
+        cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+        cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31),
+                    1)
+
+        cv2.imshow("Demo", frame)
+        frame_number += 1
+
+        # directory_path = os.path.dirname(f"./images/{video_name}/dlib/")
+        # image_path = f"{directory_path}/frame_{frame_number}.jpg"
+        # os.makedirs(directory_path, exist_ok=True)
+        # cv2.imwrite(image_path, frame)
+
+        if cv2.waitKey(1) == 27:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+    print(
+        f"none {none}, both {both}, dlib {dlib_found}, cascade {cascade_found}, frames {number_of_frames}, no_landmark {face.gaze_tracker.no_landmark}")
+    if none > 0:
+        print(f"res {none / number_of_frames}")
+
+    return 1
+
+
+def gaze_tracker(video_path: str, progress_bar: tqdm = tqdm()):
+    face = Face()
+    cap = cv2.VideoCapture(video_path)
+    face_cascade = cv2.CascadeClassifier('./models/haarcascade_frontalface_default.xml')
+    detector = dlib.get_frontal_face_detector()
+    video_name = video_path.split("/")[-1].split(".")[0]
+    frame_number = 0
+    number_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    results_path = "./results2/R-" + str(video_name)
+    results_error_path = "./results2/error_videos.txt"
+    print(video_name)
+    if os.path.exists(results_path):
+        print(results_path)
+        with open(results_path, 'r') as f:
+            video_list = f.read().splitlines()
+        num_lines = len(video_list)
+        if num_lines / number_of_frames < 0.5:
+            print('to delete')
+            print(f"total {number_of_frames}, actual: {num_lines}")
+            print(num_lines / number_of_frames)
+            os.remove(results_path)
+            print('file could not be properly analyzed')
+            with open(results_error_path, "a") as f:
+                f.write(video_name + '\n')
+        return 0
+    else:
+        with open(results_error_path, 'r') as f:
+            deleted_videos = f.read().splitlines()
+        if video_name in deleted_videos:
+            print('file could not be properly analyzed')
+            return 0
+
+    results_file = open(results_path, 'w')
+
+    progress_bar.reset(total=number_of_frames)
+
+    dlib_found = 0
+    cascade_found = 0
+    both = 0
+    none = 0
+    while True:
+        # We get a new frame from the webcam
+        _, frame = cap.read()
+        if frame is None:
+            break
+
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Detect faces in the grayscale frame
+        faces = detector(gray)
+        faces2 = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+        if len(faces) == 0 and len(faces2) == 0:
+            none += 1
+            continue
+        if len(faces) == 0 and len(faces2) > 0:
+            cascade_found += 1
+            face1 = faces2[0]
+            for (x, y, w, h) in faces2:
+                # Convert the rectangle to a dlib rectangle
+                face1 = dlib.rectangle(x, y, x + w, y + h)
+
+        if len(faces) > 0 and len(faces2) == 0:
+            dlib_found += 1
+            face1 = faces[0]
+
+        if len(faces) > 0 and len(faces2) > 0:
+            face1 = faces[0]
+            both += 1
+
+        #face1 = faces[0] #TODO make it work for multiple faces
         face.analyze(frame, face1)
         frame = face.annotate()
         text = ""
@@ -159,44 +296,37 @@ def gaze_tracker(video_path: str):
         results_file.write(str(frame_number) + " " + str(timestamp_sec) + " " + str(face.gaze_tracker.eye_left.width) + " " +
                            str(face.gaze_tracker.eye_left.height) + " " + str(face.gaze_tracker.eye_left.EAR)
                            + " " + str(face.gaze_tracker.eye_right.width) + " " +
-                           str(face.gaze_tracker.eye_right.height) + " " + str(face.gaze_tracker.eye_right.EAR) + "\n")
+                           str(face.gaze_tracker.eye_right.height) + " " + str(face.gaze_tracker.eye_right.EAR) + " " +
+                           str(face.gaze_tracker.eye_left.mediapipe_ear) + " " + str(face.gaze_tracker.eye_right.mediapipe_ear)
+                           + "\n")
 
-        if face.gaze_tracker.is_blinking():
-            is_blinking = True
-            text = "Blinking"
-        elif face.gaze_tracker.is_right():
-            text = "Looking right"
-        elif face.gaze_tracker.is_left():
-            text = "Looking left"
-        elif face.gaze_tracker.is_center():
-            text = "Looking center"
-        if not face.gaze_tracker.is_blinking():
-            if is_blinking:
-                blinks += 1
-                is_blinking = False
-
-        cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
 
         left_pupil = face.gaze_tracker.pupil_left_coords()
         right_pupil = face.gaze_tracker.pupil_right_coords()
-        cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
-        cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31),
-                    1)
 
-        #cv2.imshow("Demo", frame)
         frame_number += 1
         progress_bar.update(1)
-        # image_path = f"images/frame_{frame_number}.jpg"
-        # cv2.imwrite(image_path, frame)
 
         if cv2.waitKey(1) == 27:
+            break
+        if none > 0 and none / number_of_frames > 0.5:
             break
 
     cap.release()
     cv2.destroyAllWindows()
-    print(blinks)
     results_file.close()
+    print(f"none {none}, both {both}, dlib {dlib_found}, cascade {cascade_found}, frames {number_of_frames}, no_landmark {face.gaze_tracker.no_landmark}")
+    if none > 0:
+        print(f"res {none/number_of_frames}")
+
+    if none > 0 and none/number_of_frames > 0.5 :
+        os.remove(results_path)
+        print('file could not be properly analyzed')
+        with open(results_error_path, "a") as f:
+            f.write(video_name + '\n')
+
     progress_bar.close()
+    return 1
 
 
 # Press the green button in the gutter to run the script.
@@ -207,5 +337,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     file_name = args.file_name
     gaze_tracker(file_name)
+    #track_face(file_name)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

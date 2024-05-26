@@ -20,6 +20,7 @@ class GazeTracking(object):
         self.calibration = Calibration()
         self.landmarks = None
         self.faces = []
+        self.no_landmark = 0
 
         # _face_detector is used to detect faces
         self._face_detector = dlib.get_frontal_face_detector()
@@ -41,17 +42,19 @@ class GazeTracking(object):
         except Exception:
             return False
 
-    def analyze(self, landmarks, frame):
+    def analyze(self, dlib_landmarks, mediapipe_landmarks, frame):
         """Initialize Eye objects
 
         Arguments:
             landmarks
             frame
         """
-        self.landmarks = landmarks
+        self.landmarks = dlib_landmarks
+        if mediapipe_landmarks is None:
+            self.no_landmark += 1
         try:
-            self.eye_left = Eye(frame, landmarks, 0, self.calibration)
-            self.eye_right = Eye(frame, landmarks, 1, self.calibration)
+            self.eye_left = Eye(frame, dlib_landmarks, mediapipe_landmarks, 0, self.calibration)
+            self.eye_right = Eye(frame, dlib_landmarks, mediapipe_landmarks, 1, self.calibration)
 
         except IndexError:
             self.eye_left = None
