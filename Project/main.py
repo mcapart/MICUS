@@ -10,6 +10,10 @@ import face_recognition
 import dlib
 from face_tracking.face import Face
 from tqdm import tqdm
+import mediapipe as mp
+
+from gaze_tracking import gaze
+
 
 def face_rec2(vide_url):
     detector = dlib.get_frontal_face_detector()
@@ -328,6 +332,43 @@ def gaze_tracker(video_path: str, progress_bar: tqdm = tqdm()):
     progress_bar.close()
     return 1
 
+def eye_gaze_track(video_path):
+
+
+    mp_face_mesh = mp.solutions.face_mesh  # initialize the face mesh model
+
+    # camera stream:
+    cap = cv2.VideoCapture(video_path)  # chose camera index (try 1, 2, 3)
+    frame_num = 0
+    with mp_face_mesh.FaceMesh(
+            max_num_faces=1,  # number of faces to track in each frame
+            refine_landmarks=True,  # includes iris landmarks in the face mesh model
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5) as face_mesh:
+        while cap.isOpened():
+            success, image = cap.read()
+            if not success:  # no frame input
+                print("Ignoring empty camera frame.")
+                continue
+            # To improve performance, optionally mark the image as not writeable to
+            # pass by reference.
+            image.flags.writeable = False
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # frame to RGB for the face-mesh model
+            results = face_mesh.process(image)
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # frame back to BGR for OpenCV
+
+            if results.multi_face_landmarks:
+                gaze.gaze(image, results.multi_face_landmarks[0])  # gaze estimation
+
+            cv2.imshow('output window', image)
+            directory_path = os.path.dirname(f"./images/gaze/")
+            image_path = f"{directory_path}/frame_{frame_num}.jpg"
+            os.makedirs(directory_path, exist_ok=True)
+            cv2.imwrite(image_path, image)
+            if cv2.waitKey(2) & 0xFF == 27:
+                break
+            frame_num+=1
+    cap.release()
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -336,7 +377,8 @@ if __name__ == '__main__':
     parser.add_argument('file_name')
     args = parser.parse_args()
     file_name = args.file_name
-    gaze_tracker(file_name)
+    #gaze_tracker(file_name)
     #track_face(file_name)
+    eye_gaze_track(file_name)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
