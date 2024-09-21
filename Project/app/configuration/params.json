@@ -1,0 +1,29 @@
+{
+  "show_progress_bar": true,
+  "show_video": false,
+  "face_recognition": "MTCNN_DETECTOR",
+  "face_cascade_path": "/Users/micacapart/Documents/ITBA/pf-2023b-deepfake-detection/Project/app/models/haarcascade_frontalface_default.xml",
+  "save_to_file": true,
+  "results_directory": "/Users/micacapart/Documents/ITBA/pf-2023b-deepfake-detection/Project/file_res",
+  "image_directory": "/Users/micacapart/Documents/ITBA/pf-2023b-deepfake-detection/Project/file_res/images",
+  "video_file": "/Users/micacapart/Documents/ITBA/pf-2023b-deepfake-detection/DS/eyeblink8/8/27122013_151644_cam.avi",
+  "save_no_face_frames": true,
+  "enable_logging": true,
+  "log_file": "/Users/micacapart/Documents/ITBA/pf-2023b-deepfake-detection/Project/file_res/log.log",
+  "blink_detection_parameters": {
+    "DLIB": {
+      "threshold": 0.26,
+      "max_double_blink_interval": 0.5,
+      "min_peak_value": 0.46,
+      "max_frame_distance": 10,
+      "cutoff_scale": 0.8
+    },
+    "MEDIAPIPE": {
+      "threshold": 0.18,
+      "max_double_blink_interval": 0.5,
+      "min_peak_value": 0.44,
+      "max_frame_distance": 12,
+      "cutoff_scale": 0.79
+    }
+  }
+}

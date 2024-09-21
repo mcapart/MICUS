@@ -12,6 +12,9 @@ dependencies:
   - tqdm==4.66.4
   - matplotlib==3.8.4
   - scipy
-
-
-
+  - python-dotenv
+  - pydantic
+  - colorlog
+  - scikit-learn
+  - multiprocess
+  - psutil

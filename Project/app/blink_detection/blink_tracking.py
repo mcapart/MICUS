@@ -2,16 +2,14 @@ from __future__ import division
 import os
 import cv2
 import dlib
-from gaze_tracking.eye import Eye
-from gaze_tracking.calibration import Calibration
+from app.blink_detection.eye import Eye
+from app.blink_detection.calibration import Calibration
 
 
 # Code changed modified from https://github.com/antoinelame/GazeTracking
-class GazeTracking(object):
+class BlinkTracking(object):
     """
-    This class tracks the user's gaze.
-    It provides useful information like the position of the eyes
-    and pupils and allows to know if the eyes are open or closed
+    This class tracks the user's blinking.
     """
 
     def __init__(self):
@@ -22,8 +20,6 @@ class GazeTracking(object):
         self.faces = []
         self.no_landmark = 0
 
-        # _face_detector is used to detect faces
-        self._face_detector = dlib.get_frontal_face_detector()
 
         # _predictor is used to get facial landmarks of a given face
         cwd = os.path.abspath(os.path.dirname(__file__))

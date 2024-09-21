@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from gaze_tracking.helpers import relative, relativeT
+from app.blink_detection.helpers import relative, relativeT
 
 
 def gaze(frame, points):
@@ -84,11 +84,6 @@ def gaze(frame, points):
         # 3D gaze point (10 is arbitrary value denoting gaze distance)
         S = Eye_ball_center_left + (pupil_world_cord - Eye_ball_center_left) * 10
 
-        # project pupil image point into 3d world point
-        pupil_world_cord_right = transformation @ np.array([[right_pupil[0], right_pupil[1], 0, 1]]).T
-
-        # 3D gaze point (10 is arbitrary value denoting gaze distance)
-        S_right = Eye_ball_center_left + (pupil_world_cord - Eye_ball_center_left) * 10
 
         # Project a 3D gaze direction onto the image plane.
         (eye_pupil2D, _) = cv2.projectPoints((int(S[0]), int(S[1]), int(S[2])), rotation_vector,
@@ -105,6 +100,19 @@ def gaze(frame, points):
         p2 = (int(gaze[0]), int(gaze[1]))
         cv2.line(frame, p1, p2, (0, 0, 255), 2)
 
+        # project pupil image point into 3d world point
+        pupil_world_cord = transformation @ np.array([[right_pupil[0], right_pupil[1], 0, 1]]).T
+
+        # 3D gaze point (10 is arbitrary value denoting gaze distance)
+        S = Eye_ball_center_right + (pupil_world_cord - Eye_ball_center_right) * 10
+
+        # Project a 3D gaze direction onto the image plane.
+        (eye_pupil2D, _) = cv2.projectPoints((int(S[0]), int(S[1]), int(S[2])), rotation_vector,
+                                             translation_vector, camera_matrix, dist_coeffs)
+        # project 3D head pose into the image plane
+        (head_pose, _) = cv2.projectPoints((int(pupil_world_cord[0]), int(pupil_world_cord[1]), int(40)),
+                                           rotation_vector,
+                                           translation_vector, camera_matrix, dist_coeffs)
         # correct gaze for head rotation
         gaze = right_pupil + (eye_pupil2D[0][0] - right_pupil) - (head_pose[0][0] - right_pupil)
 
@@ -112,4 +120,6 @@ def gaze(frame, points):
         p1 = (int(right_pupil[0]), int(right_pupil[1]))
         p2 = (int(gaze[0]), int(gaze[1]))
         cv2.line(frame, p1, p2, (0, 0, 255), 2)
+
+
 

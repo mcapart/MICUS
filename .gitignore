@@ -53,3 +53,5 @@ Project/results/*
 Project/results2/*
 Project/DFRes/*
 Project/images/*
+
+.env

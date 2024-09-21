@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import cv2
-from gaze_tracking.pupil import Pupil
+from app.blink_detection.pupil import Pupil
 import dlib
 from scipy.spatial import distance as dist
 import mediapipe as mp

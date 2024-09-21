@@ -9,7 +9,7 @@ def calculate_time_between_peaks(left_eye_ears, right_eye_ears, time_stamps):
         return None
     peaks = calculate_derivatives_peaks(avg_derivative)
     midpoints = (time_stamps[:-1] + time_stamps[1:]) / 2
-    pairs = calculate_peak_pairs(peaks, midpoints, 0.3)
+    pairs = calculate_peak_pairs(peaks, midpoints, avg_derivative, 0.3)
     peak_times = midpoints[peaks]
     blink_times = []
     for pair in pairs:
@@ -19,13 +19,14 @@ def calculate_time_between_peaks(left_eye_ears, right_eye_ears, time_stamps):
     return blink_times, pairs
 
 
+
+
 def calculate_avg_derivatives(left_eye_ears, right_eye_ears, time_stamps):
+
     time_stamps = np.array(time_stamps)
-    time_diffs = np.diff(time_stamps)
     avg_ears = (np.array(left_eye_ears) + np.array(right_eye_ears)) / 2.0
-    avg_derivative = np.diff(avg_ears) / time_diffs
-    g = np.gradient(avg_ears, time_stamps)
-    return g
+    return np.gradient(avg_ears, time_stamps)
+
 
 
 def calculate_derivatives_peaks(avg_derivative):
@@ -33,20 +34,22 @@ def calculate_derivatives_peaks(avg_derivative):
         return -1
     # Calculate the cutoff peak height
     max_derivative = np.max(avg_derivative)
-    m_height = 0.5 * max_derivative
-    if m_height < 2:
-        m_height = 2
+    threshold = 0.5
+    m_height = threshold * max_derivative
+    # if m_height < 2:
+    #     m_height = 2
     min_derivative = np.min(avg_derivative)
-    min_height = 0.5 * (-min_derivative)
-    if min_height < 2:
-        min_height = 2
+    min_height = threshold * (-min_derivative)
+
+    # if min_height < 2:
+    #     min_height = 2
 
     # print(f"max: {0.5*max_derivative} min: {0.5*(-min_derivative)}")
 
     # Find positive peaks in the derivative with values greater than 2
-    pos_peaks, _ = find_peaks(avg_derivative, height=m_height, distance=10)
+    pos_peaks, _ = find_peaks(avg_derivative,  distance=10)
     # Find negative peaks in the derivative with values less than -2
-    neg_peaks, _ = find_peaks(-avg_derivative, height=min_height, distance=10)
+    neg_peaks, _ = find_peaks(-avg_derivative,  distance=10)
 
     # Combine positive and negative peaks
     all_peaks = np.sort(np.concatenate((pos_peaks, neg_peaks)))
@@ -54,11 +57,53 @@ def calculate_derivatives_peaks(avg_derivative):
     return all_peaks
 
 
-def calculate_peak_pairs(all_peaks, midpoints, threshold):
+def calculate_peak_pairs(all_peaks, midpoints, avg_derivative, threshold):
     blink_pairs = []
+    max_derivative = np.max(avg_derivative)
+    min_derivative = np.min(avg_derivative)
+    distance = np.abs(max_derivative - min_derivative)
+    distances = []
+
     for i in range(len(all_peaks) - 1):
-        if np.abs(midpoints[all_peaks[i + 1]] - midpoints[all_peaks[i]]) < threshold:
-            blink_pairs.append((midpoints[all_peaks[i]], midpoints[all_peaks[i + 1]]))
+        peak1 = all_peaks[i]
+        peak2 = all_peaks[i + 1]
+        value_1 = avg_derivative[peak1]
+        value_2 = avg_derivative[peak2]
+        height_diff = np.abs(value_1 - value_2)
+        frame_distance = np.abs(peak1 - peak2)
+        min_frame = 1
+        max_frame = 10
+
+        scaled_cutoff = np.interp(frame_distance, [min_frame, max_frame], [1, distance * 0.8])
+        cutoff_distance = max(scaled_cutoff, 1)
+
+
+        #if 113 < midpoints[peak1] < 115:
+            #print('HERE 114',  height_diff, cutoff_distance, value_1, value_2, frame_distance)
+        # if 118 < midpoints[peak1] < 120:
+        #     print('HERE 32', peak1, peak2, height_diff, value_1, value_2, cutoff_distance, frame_distance)
+        # if 157 < midpoints[peak1] < 159:
+        #     print('HERE 102', peak1, peak2, height_diff, value_1, value_2, cutoff_distance, frame_distance)
+        #if 161 < midpoints[peak1] < 163:
+            #print('HERE 161', height_diff, cutoff_distance, value_1, value_2, frame_distance)
+        # if 178 < midpoints[peak1] < 179:
+        #     print('HERE 137', peak1, peak2, height_diff, value_1, value_2, frame_distance)
+        # if 238 < midpoints[peak1] < 239:
+        #     print('HERE 162', peak1, peak2, height_diff, value_1, value_2, frame_distance)
+        # if 272 < midpoints[peak1] < 274:
+        #     print('HERE 239', peak1, peak2, height_diff, value_1, value_2, frame_distance)
+        # if 323 < midpoints[peak1] < 325:
+        #     print('HERE 239', peak1, peak2, height_diff, value_1, value_2, frame_distance)
+        #29 - 119 (mal) - 158(mal) - 162 - 179 - 239 - 273 (mal) - 324 (mal)
+
+        if ((value_1 < 0 and value_2 > 0) or (value_2 < 0 < value_1)) and abs(value_1) > 0.5 and abs(value_2) > 0.5 and height_diff >= cutoff_distance and np.abs(peak1 - peak2) <= 10:
+            blink_pairs.append((midpoints[peak1], midpoints[peak2]))
+            distances.append(np.abs(value_1 - value_2))
+    # print("Peak Results!!!")
+    # print(blink_pairs)
+    # print(np.min(distances), np.max(distances), np.average(distances))
+    # print('--------')
+    # print(len(blink_pairs))
     return blink_pairs
 
 
@@ -104,8 +149,6 @@ def analyze_derivative_for_blinks(derivative_ears, time_stamps):
         left = pair[1]
         indices_to_remove = np.where(peak_times == left)[0]
         blink_times.append(peak_times[indices_to_remove][0])
-    print(blink_times)
-    print(peaks)
     return len(pairs)
 
 

@@ -1,0 +1,67 @@
+{
+  "Averages DLIB": {
+    "difference": 0.14814814814814814,
+    "min_peak_value": 0.45481481481481484,
+    "max_frame_distance": 10.57037037037037,
+    "blink_count": 42.53333333333333,
+    "target_blinks": 42.53333333333333,
+    "max_double_blink_interval": 0.5000000000000001,
+    "threshold": 0.2540740740740742,
+    "cutoff_scale": 0.8577777777777778
+  },
+
+  "Averages Cascade": {
+    "difference": 17.078651685393258,
+    "min_peak_value": 0.45955056179775283,
+    "max_frame_distance": 9.696629213483146,
+    "blink_count": 55.95505617977528,
+    "target_blinks": 38.87640449438202,
+    "max_double_blink_interval": 0.5000000000000001,
+    "threshold": 0.29550561797752817,
+    "cutoff_scale": 0.8741573033707863
+  },
+
+  "Averages MTCNN": {
+    "difference": 0.0,
+    "min_peak_value": 0.4636363636363636,
+    "max_frame_distance": 10.568181818181818,
+    "blink_count": 40.38636363636363,
+    "target_blinks": 40.38636363636363,
+    "max_double_blink_interval": 0.5000000000000001,
+    "threshold": 0.26306818181818187,
+    "cutoff_scale": 0.8352272727272727
+  },
+
+  "Averages DLIB MediaPipe": {
+    "difference": 0.696969696969697,
+    "min_peak_value": 0.4401515151515151,
+    "max_frame_distance": 12.406060606060606,
+    "blink_count": 36.515151515151516,
+    "target_blinks": 37.21212121212121,
+    "max_double_blink_interval": 0.5,
+    "threshold": 0.18886363636363643,
+    "cutoff_scale": 0.7975757575757574
+  },
+
+  "Averages Cascade MediaPipe": {
+    "difference": 0.696969696969697,
+    "min_peak_value": 0.4401515151515151,
+    "max_frame_distance": 12.406060606060606,
+    "blink_count": 36.515151515151516,
+    "target_blinks": 37.21212121212121,
+    "max_double_blink_interval": 0.5,
+    "threshold": 0.18886363636363643,
+    "cutoff_scale": 0.7975757575757574
+  },
+
+  "Averages MTCNN MediaPipe": {
+    "difference": 0.696969696969697,
+    "min_peak_value": 0.4401515151515151,
+    "max_frame_distance": 12.406060606060606,
+    "blink_count": 36.515151515151516,
+    "target_blinks": 37.21212121212121,
+    "max_double_blink_interval": 0.5,
+    "threshold": 0.18886363636363643,
+    "cutoff_scale": 0.7975757575757574
+  }
+}

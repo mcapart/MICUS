@@ -169,7 +169,7 @@ def plot_derivative_avg_ears_with_peaks(left_eye_ears, right_eye_ears, time_stam
     midpoints = (time_stamps[:-1] + time_stamps[1:]) / 2
     peak_times = midpoints[all_peaks]
     indexes = []
-    pairs = calculate_peak_pairs(all_peaks, midpoints, 0.3)
+    pairs = calculate_peak_pairs(all_peaks, midpoints, avg_derivative, 0.3)
 
     for pair in pairs:
         left = pair[1]
@@ -180,16 +180,41 @@ def plot_derivative_avg_ears_with_peaks(left_eye_ears, right_eye_ears, time_stam
         indexes.append(all_peaks[index][0])
 
 
+
+
    # Plot the derivative of the average EARS
-    plt.plot(time_stamps, avg_derivative, label='Average EARS Derivative')
-    plt.plot(time_stamps[indexes], avg_derivative[indexes], "x", label='Peaks')
+   #  plt.plot(time_stamps, avg_derivative, label='Average EARS Derivative', color='b')
+   #  plt.plot(time_stamps[indexes], avg_derivative[indexes], "x", label='Peaks', color='r')
+   #
+   #  plt.xlabel('Time (s)')
+   #  plt.ylabel('Average EARS Derivative')
+   #  plt.title('Derivative of Average Eye Aspect Ratio (EARS) over Time - ' + form )
+   #  plt.legend()
+   #  plt.grid(True)
+   #  plt.show()
+    return len(pairs)
+
+def plot_avg_ears_with_peaks(left_eye_ears, right_eye_ears, time_stamps, form: str = "dlib"):
+    # Convert time_stamps to a NumPy array
+    time_stamps = np.array(time_stamps)
+    avg_ears = (np.array(left_eye_ears) + np.array(right_eye_ears)) / 2.0
+    std = np.std(avg_ears)
+
+    peaks = avg_ears < (std )
+
+
+   # Plot the derivative of the average EARS
+    plt.plot(time_stamps, avg_ears, label='Average EARS', color='b')
+    plt.scatter(time_stamps[peaks], avg_ears[peaks], color='r', label='Peaks < 2*STD', zorder=5)
+
 
     plt.xlabel('Time (s)')
-    plt.ylabel('Average EARS Derivative')
-    plt.title('Derivative of Average Eye Aspect Ratio (EARS) over Time - ' + form )
+    plt.ylabel('Average EARS')
+    plt.title('Average Eye Aspect Ratio (EARS) over Time - ' + form )
     plt.legend()
     plt.grid(True)
     plt.show()
+
 
 
 
