@@ -30,7 +30,7 @@ class FaceSegment:
     frames: List[FrameData]
 
 @dataclass
-class VideoAnalysisResult:
+class VideoTrackingResult:
     completed: bool = False
     segments: List[FaceSegment] = field(default_factory=list)
     stats: Dict[FaceRecognitionModel, int] = field(default_factory=lambda: {method: 0 for method in DetectionMethod})

@@ -9,13 +9,13 @@ import time
 import os
 import logging
 import warnings
-from app.blink_detection.blink_analysis import detect_blinks
+from app.blink_detection.analyses.blink_analysis import detect_blinks
 import statistics
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 import threading
 
-from app.results.video_analysis_result import FrameData, VideoAnalysisResult
+from app.results.video_tracking_result import FrameData, VideoTrackingResult
 import glob
 
 # Suppress warnings
@@ -301,7 +301,7 @@ def load_data_from_results(file_path):
     return segments
 
 # Function to optimize blink detection parameters
-def optimize_parameters(config: Configuration, face_model: FaceRecognitionModel, result: VideoAnalysisResult, landmark_model: LandmarkModel, target_blinks=30):
+def optimize_parameters(config: Configuration, face_model: FaceRecognitionModel, result: VideoTrackingResult, landmark_model: LandmarkModel, target_blinks=30):
     """
     Optimizes the blink detection parameters.
     
@@ -383,7 +383,7 @@ def analyze_face_recognition_models(config: Configuration, target_blinks, video_
           
             update_progress(video_name, 100, i / total_models * 100, f"Loaded existing results for {face_model.value}")
             segments = load_data_from_results(results_path)
-            result = VideoAnalysisResult()
+            result = VideoTrackingResult()
             for segment in segments:
                 for i in range(len(segment['time_stamps'])):
                     frame_data = FrameData(

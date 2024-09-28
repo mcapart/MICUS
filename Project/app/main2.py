@@ -14,8 +14,8 @@ import numpy as np
 from pydantic import TypeAdapter
 
 from app.face_tracking.face import Face
-from app.results.video_analysis_result import DetectionMethod, VideoAnalysisResult, FrameData
-from app.Analysis.vid_analysis import analyze_video, detect_anomalies
+from app.results.video_tracking_result import DetectionMethod, VideoTrackingResult, FrameData
+from app.analysis.vid_analysis import analyze_video, detect_anomalies
 from app.configuration.configuration_model import Configuration, FaceRecognitionModel
 
 
@@ -50,7 +50,7 @@ def setup_logging(config: Configuration) -> None:
             console_handler.setFormatter(console_formatter)
             logger.addHandler(console_handler)
 
-def video_analysis(file: str, config: Configuration, progress_callback=None) -> VideoAnalysisResult:
+def video_analysis(file: str, config: Configuration, progress_callback=None) -> VideoTrackingResult:
     # Set up logging
     setup_logging(config)
     if config.enable_logging:
@@ -58,7 +58,7 @@ def video_analysis(file: str, config: Configuration, progress_callback=None) -> 
 
     face = Face()
     cap = cv2.VideoCapture(file)
-    result = VideoAnalysisResult()
+    result = VideoTrackingResult()
     # Create a dictionary mapping FaceRecognitionModel to detectors
     detectors = {}
 
@@ -123,6 +123,9 @@ def video_analysis(file: str, config: Configuration, progress_callback=None) -> 
         if cv2.waitKey(1) == 27:
             break
     result.end_current_segment()  # End the last segment
+     # Always write results to file
+    if config.save_to_file:
+        result.write_results_to_file(results_path)
 
     # Perform analysis
     analysis_results = analyze_video(result, config.blink_detection_parameters)
@@ -131,36 +134,16 @@ def video_analysis(file: str, config: Configuration, progress_callback=None) -> 
     cleanup(cap, progress_bar)
     log_stats(result.stats, number_of_frames, face)
 
-    # Always write results to file
-    if config.save_to_file:
-        result.write_results_to_file(results_path)
+   
 
     if config.enable_logging:
         logging.info(f"Video analysis completed for {video_name}")
         logging.info(f"Stats: {result.stats}")
         
-        # Log overall analysis results
-        logging.info("Overall Analysis Results:")
-        for key, value in analysis_results['overall_analysis'].items():
-            logging.info(f"{key}: {value}")
+        analysis_results.log()
         
-        # Log segment analysis results (you might want to limit this if there are many segments)
-        logging.info("Segment Analysis Results:")
-        for i, segment in enumerate(analysis_results['segment_analyses']):
-            logging.info(f"Segment {i}:")
-            for key, value in segment.items():
-                logging.info(f"  {key}: {value}")
+        anomalies.log()
         
-        # Log anomalies
-        if anomalies:
-            logging.info("Detected Anomalies:")
-            for anomaly in anomalies:
-                logging.info(f"Anomaly in segment {anomaly['segment_index']}:")
-                for key, value in anomaly.items():
-                    if key != 'segment_index':
-                        logging.info(f"  {key}: {value}")
-        else:
-            logging.info("No anomalies detected.")
     result.completed = True
     return result
 

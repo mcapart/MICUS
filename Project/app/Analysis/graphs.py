@@ -1,9 +1,15 @@
 import argparse
+import json
+import os
 import matplotlib.pyplot as plt
 import numpy as np
+from pydantic import TypeAdapter
 
-from analisys import calculate_avg_derivatives, calculate_derivatives_peaks, calculate_peak_pairs
-from utils import read_eye_blink_file
+from app.blink_detection.analyses.blink_analysis import BlinkAnalyses
+from app.configuration.configuration_model import BlinkDetectionParameters, Configuration
+from app.results.video_tracking_result import VideoTrackingResult
+from app.analysis.utils import load_data_from_results
+
 
 
 def plot_graphs_by_frame(left_eye_heights, right_eye_heights):
@@ -157,42 +163,34 @@ def plot_avg_ears_by_time(left_eye_ears, right_eye_ears, time_stamps, form: str 
     plt.show()
 
 
-def plot_derivative_avg_ears_with_peaks(left_eye_ears, right_eye_ears, time_stamps, form: str = "dlib"):
-    # Convert time_stamps to a NumPy array
-    time_stamps = np.array(time_stamps)
-    # Calculate the derivative of the average EARS values
-    avg_derivative = calculate_avg_derivatives(left_eye_ears, right_eye_ears, time_stamps)
-    # Calculate the midpoints of timestamps for plotting
-    midpoints = (time_stamps[:-1] + time_stamps[1:]) / 2
-    # Calculate peaks
-    all_peaks = calculate_derivatives_peaks(avg_derivative)
-    midpoints = (time_stamps[:-1] + time_stamps[1:]) / 2
-    peak_times = midpoints[all_peaks]
-    indexes = []
-    pairs = calculate_peak_pairs(all_peaks, midpoints, avg_derivative, 0.3)
+def plot_derivative_avg_ears_with_peaks(result: VideoTrackingResult, blink_params:BlinkDetectionParameters):
+    all_left_eye_ears = []
+    all_right_eye_ears = []
+    all_timestamps = []
 
-    for pair in pairs:
-        left = pair[1]
-        index = np.where(peak_times == left)[0]
-        indexes.append(all_peaks[index][0])
-        right = pair[0]
-        index = np.where(peak_times == right)[0]
-        indexes.append(all_peaks[index][0])
+    for segment in result.segments:
+        all_left_eye_ears.extend(frame.left_eye_ear for frame in segment.frames)
+        all_right_eye_ears.extend(frame.right_eye_ear for frame in segment.frames)
+        all_timestamps.extend(frame.timestamp_sec for frame in segment.frames)
 
+    blink_analyses = BlinkAnalyses(result, blink_params)
 
+    # Calculate average EARS
+    avg_ears = blink_analyses.calculate_avg_derivatives(left_eye_ears = all_left_eye_ears, right_eye_ears= all_right_eye_ears, time_stamps=all_timestamps)
 
+    # Detect peaks
+    peaks, _ = blink_analyses.calculate_derivatives_peaks(avg_ears, blink_params.threshold)  
 
-   # Plot the derivative of the average EARS
-   #  plt.plot(time_stamps, avg_derivative, label='Average EARS Derivative', color='b')
-   #  plt.plot(time_stamps[indexes], avg_derivative[indexes], "x", label='Peaks', color='r')
-   #
-   #  plt.xlabel('Time (s)')
-   #  plt.ylabel('Average EARS Derivative')
-   #  plt.title('Derivative of Average Eye Aspect Ratio (EARS) over Time - ' + form )
-   #  plt.legend()
-   #  plt.grid(True)
-   #  plt.show()
-    return len(pairs)
+    # Plotting
+    plt.figure(figsize=(10, 5))
+    plt.plot(all_timestamps, avg_ears, label='Average EARS', color='b')
+    plt.scatter(np.array(all_timestamps)[peaks], avg_ears[peaks], color='r', label='Peaks', zorder=5)
+    plt.xlabel('Time (s)')
+    plt.ylabel('Average EARS')
+    plt.title('Overall Average EARS with Peaks')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 def plot_avg_ears_with_peaks(left_eye_ears, right_eye_ears, time_stamps, form: str = "dlib"):
     # Convert time_stamps to a NumPy array
@@ -221,10 +219,17 @@ def plot_avg_ears_with_peaks(left_eye_ears, right_eye_ears, time_stamps, form: s
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='Face Tracking')
-    parser.add_argument('file_name')
+    parser.add_argument('file_path')
     args = parser.parse_args()
-    file_name = args.file_name
-    left_eye_heights, right_eye_heights, time_stamps, left_eye_ears, right_eye_ears, left_eye_ears2, right_eye_ears2 = \
-        read_eye_blink_file(file_name)
+    file_path = args.file_path
+    result = load_data_from_results(file_path) 
+    config_path = os.path.join(os.path.dirname(__file__), '../configuration', 'params.json')
+
+    with open(config_path, 'r') as file:
+        data = json.load(file)
+        conf = TypeAdapter(Configuration).validate_python(data)
+
+
+
 
 
