@@ -1,6 +1,8 @@
 import cv2
 import dlib
 import os
+
+from app.PPG.PPG_tracking import PPGTracking
 from app.blink_detection.blink_tracking import BlinkTracking
 from app.gaze_detection.gaze_tracking import GazeTracking
 
@@ -15,8 +17,9 @@ class Face:
         self.landmarks = None
         self.mediapipe_landmarks = None
         self.face = None
-        self.blink_tracker = BlinkTracking()
-        self.gaze_tracker = GazeTracking()
+        #self.blink_tracker = BlinkTracking()
+        #self.gaze_tracker = GazeTracking()
+        self.ppg_tracker = PPGTracking()
 
         # _predictor is used to get facial landmarks of a given face
         cwd = os.path.abspath(os.path.dirname(__file__))
@@ -55,8 +58,9 @@ class Face:
         # Use Mediapipe for landmark detection
         self.mediapipe_landmarks = self.get_landmarks_mediapipe(frame)
 
-        self.blink_tracker.analyze(landmarks, self.mediapipe_landmarks, frame)
-        self.gaze_tracker.analyze(landmarks, self.mediapipe_landmarks, frame)
+        #self.blink_tracker.analyze(landmarks, self.mediapipe_landmarks, frame)
+        #self.gaze_tracker.analyze(landmarks, self.mediapipe_landmarks, frame)
+        self.ppg_tracker.analyze(self.mediapipe_landmarks, frame)
 
 
     def get_landmarks_mediapipe(self, frame):
