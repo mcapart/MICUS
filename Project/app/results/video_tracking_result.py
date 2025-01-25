@@ -13,6 +13,7 @@ class DetectionMethod(Enum):
 class FrameData:
     frame_number: int
     timestamp_sec: float
+    #blink detection values
     left_eye_width: float
     left_eye_height: float
     left_eye_ear: float
@@ -21,7 +22,10 @@ class FrameData:
     right_eye_ear: float
     left_eye_mediapipe_ear: float
     right_eye_mediapipe_ear: float
+    #gaze tracking value
     gaze_direction: str
+    #heart rate
+    
 
 @dataclass
 class FaceSegment:

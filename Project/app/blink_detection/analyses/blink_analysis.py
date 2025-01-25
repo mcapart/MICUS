@@ -238,7 +238,7 @@ class BlinkAnalyses:
 
 
         dlib_anomalies: list[BlinkAnomaliesEnum] = []
-        #dlib
+        #region dlib
         if self.analysis_result.dlib_blink_count == 0:
             dlib_anomalies.append(BlinkAnomaliesEnum.NO_BLINK)
         no_double_rate = self.analysis_result.dlib_blinks_no_double_rate
@@ -281,7 +281,8 @@ class BlinkAnalyses:
                 break
 
         mediapipe_anomalies: list[BlinkAnomaliesEnum] = []
-        #mediapipe
+        #endregion 
+        #region mediapipe
         if self.analysis_result.mediapipe_blink_count == 0:
             mediapipe_anomalies.append(BlinkAnomaliesEnum.NO_BLINK)
         no_double_rate = self.analysis_result.mediapipe_blinks_no_double_rate
@@ -320,6 +321,7 @@ class BlinkAnalyses:
             if abs(left_ear_mean - right_ear_mean) / ((left_ear_mean + right_ear_mean) / 2) > 0.2:
                 mediapipe_anomalies.append(BlinkAnomaliesEnum.EYE_DISCREPANCY)
                 break
+        #endregion
         
         return dlib_anomalies, mediapipe_anomalies
 
