@@ -97,7 +97,7 @@ class PPGTracking:
             mean_colors_resampled[color] = resampled
 
         if mean_colors_resampled.shape[1] > self.window:
-            self._calculate_bpm(mean_colors_resampled, frame)
+            self._calculate_bpm(mean_colors_resampled)
 
 
     def _calculate_bpm(self, mean_colors_resampled):

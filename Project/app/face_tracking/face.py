@@ -68,14 +68,10 @@ class Face:
                 timestamp_sec=frame_number / self.fps,
                 left_eye_ear=self.blink_tracker.eye_left.ear,
                 right_eye_ear=self.blink_tracker.eye_right.ear,
-                gaze_direction=gaze_direction  
+                gaze_direction=gaze_direction,
+                col_mean= [0, 0, 0]
             )
         self.results.add_frame(frame_data)
-
-
-        self.blink_tracker.analyze(landmarks, self.mediapipe_landmarks, frame)
-        self.gaze_tracker.analyze(landmarks, self.mediapipe_landmarks, frame)
-
 
     def get_landmarks_mediapipe(self, frame):
         results = self.face_mesh.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
