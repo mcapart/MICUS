@@ -1,6 +1,8 @@
 import os
 import dlib
-from app.gaze_detection.gaze import Gaze
+
+from .models.gaze_models import GazeDirection
+from .gaze import Gaze
 
 
 class GazeTracking(object):
@@ -16,27 +18,26 @@ class GazeTracking(object):
 
         # _predictor is used to get facial landmarks of a given face
         cwd = os.path.abspath(os.path.dirname(__file__))
-        model_path = os.path.abspath(os.path.join(cwd, "../models/shape_predictor_68_face_landmarks.dat"))
+        model_path = os.path.abspath(os.path.join(cwd, "../../models/shape_predictor_68_face_landmarks.dat"))
         self._predictor = dlib.shape_predictor(model_path)
     
-    def analyze(self, dlib_landmarks, mediapipe_landmarks, frame):
-        self.landmarks = dlib_landmarks
-        self.mediapipe_landmarks = mediapipe_landmarks
+    def analyze(self,  landmarks, frame):
+        self.landmarks = landmarks
         self.frame = frame
 
-        if self.mediapipe_landmarks and self.frame is not None:
-            self.gaze = Gaze(self.frame, self.mediapipe_landmarks)
+        if self.landmarks and self.frame is not None:
+            self.gaze = Gaze(self.frame, self.landmarks)
         else:
             self.gaze = None
 
     def get_gaze_direction(self):
         if self.gaze is None:
-            return "unknown"
+            return GazeDirection.UNKNOWN
 
         left_gaze_line, right_gaze_line = self.gaze.get_gaze_lines()
 
         if left_gaze_line is None or right_gaze_line is None:
-            return "unknown"
+            return GazeDirection.UNKNOWN
 
         # Check if gaze lines intersect
         intersection = self.line_intersection(left_gaze_line, right_gaze_line)
@@ -45,20 +46,20 @@ class GazeTracking(object):
             # Determine gaze direction based on intersection point
             center_x = self.frame.shape[1] / 2
             if intersection[0] < center_x - 50:
-                return "left"
+                return GazeDirection.LEFT
             elif intersection[0] > center_x + 50:
-                return "right"
+                return GazeDirection.RIGHT
             else:
-                return "center"
+                return GazeDirection.CENTER
         else:
             # If lines don't intersect, use the average direction
-            left_direction = "left" if left_gaze_line[1][0] - left_gaze_line[0][0] < 0 else "right"
-            right_direction = "left" if right_gaze_line[1][0] - right_gaze_line[0][0] < 0 else "right"
+            left_direction = GazeDirection.LEFT if left_gaze_line[1][0] - left_gaze_line[0][0] < 0 else GazeDirection.RIGHT
+            right_direction = GazeDirection.LEFT if right_gaze_line[1][0] - right_gaze_line[0][0] < 0 else GazeDirection.RIGHT
             
             if left_direction == right_direction:
                 return left_direction
             else:
-                return "center"
+                return GazeDirection.CENTER
 
     def line_intersection(self, line1, line2):
         x1, y1 = line1[0]

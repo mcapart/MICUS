@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pydantic import TypeAdapter
 
-from app.blink_detection.analyses.blink_analysis import BlinkAnalyses
+from app.detection import BlinkAnalyses
 from app.configuration.configuration_model import BlinkDetectionParameters, Configuration
 from app.results.video_tracking_result import VideoTrackingResult
 from app.analysis.utils import load_data_from_results

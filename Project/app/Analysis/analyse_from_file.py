@@ -6,7 +6,7 @@ import os
 
 from pydantic import TypeAdapter
 
-from app.analysis.vid_analysis import analyze_video, detect_anomalies
+from app.analysis.vid_analysis import analyze_video
 from app.analysis.utils import load_data_from_results
 from app.configuration.configuration_model import Configuration
 
@@ -17,7 +17,6 @@ def analyse_video_from_result_file(result:VideoTrackingResult, config: Configura
     print('Starting analysis')
     analysis_results = analyze_video(result, config.blink_detection_parameters)
     analysis_results.print_analysis()
-    detect_anomalies(result, config.blink_detection_parameters)
 
 
 if __name__ == '__main__':
