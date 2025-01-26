@@ -5,8 +5,7 @@ import numpy as np
 from app.configuration import BlinkDetectionParameters
 from app.results.video_tracking_result import (VideoTrackingResult, FrameData, FaceSegment)
 from app.results.video_analysis import (VideoAnalyses)
-from app.detection import (BlinkTracking, GazeTracking, BlinkAnalyses, analyze_gaze_directions, GazeSegmentAnalysesResult, GazeDirection)
-from app.PPG.PPG_tracking import PPGTracking
+from app.detection import (BlinkTracking, GazeTracking, BlinkAnalyses, analyze_gaze_directions, GazeSegmentAnalysesResult, GazeDirection, PPGTracking)
 
 mp_face_mesh=mp.solutions.face_mesh
 
@@ -19,7 +18,7 @@ class Face:
         self.face = None
         self.blink_tracker = BlinkTracking()
         self.gaze_tracker = GazeTracking()
-        self.ppg_tracker = PPGTracking()
+        self.ppg_tracker = PPGTracking(fps)
         self.results = VideoTrackingResult()
         self.fps = fps
 

@@ -56,6 +56,7 @@ def video_analysis(file: str, config: Configuration, progress_callback=None):
 
     cap = cv2.VideoCapture(file)
     fps = cap.get(cv2.CAP_PROP_FPS)
+    print(fps)
     number_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     face = Face(fps)

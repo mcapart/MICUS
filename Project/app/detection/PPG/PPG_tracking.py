@@ -1,6 +1,6 @@
 import time
 from typing import List
-from ..results.video_tracking_result import FrameData
+from app.results import FrameData
 from .utils import *
 
 
