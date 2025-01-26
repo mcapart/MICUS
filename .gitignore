@@ -55,3 +55,4 @@ Project/DFRes/*
 Project/images/*
 
 .env
+.vscode

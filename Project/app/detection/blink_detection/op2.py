@@ -9,14 +9,12 @@ import time
 import os
 import logging
 import warnings
-from app.blink_detection.analyses.blink_analysis import detect_blinks
+from .analyses.blink_analysis import detect_blinks
 import statistics
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 import threading
-
 from app.results.video_tracking_result import FrameData, VideoTrackingResult
-import glob
 
 # Suppress warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="google.protobuf.symbol_database")

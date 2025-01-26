@@ -1,28 +1,21 @@
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Dict, Tuple
-from app.configuration.configuration_model import FaceRecognitionModel
+from typing import List, Tuple
 
-class DetectionMethod(Enum):
-    DLIB = FaceRecognitionModel.DLIB.value
-    CASCADE_CLASSIFIER = FaceRecognitionModel.CASCADE_CLASSIFIER.value
-    MTCNN_DETECTOR = FaceRecognitionModel.MTCNN_DETECTOR.value
-    NONE = 'NONE'
+# from app.detection.gaze_detection.models.gaze_models import GazeDirection
 
 @dataclass
 class FrameData:
     frame_number: int
     timestamp_sec: float
-    col_mean: Tuple[int, int, int] # B, G, R
-    left_eye_width: float
-    left_eye_height: float
+    #blink detection values
     left_eye_ear: float
-    right_eye_width: float
-    right_eye_height: float
     right_eye_ear: float
-    left_eye_mediapipe_ear: float
-    right_eye_mediapipe_ear: float
+    #gaze tracking value
     gaze_direction: str
+    #heart rate
+    col_mean: Tuple[int, int, int] # B, G, R
+    
+    
 
 @dataclass
 class FaceSegment:
@@ -34,7 +27,7 @@ class FaceSegment:
 class VideoTrackingResult:
     completed: bool = False
     segments: List[FaceSegment] = field(default_factory=list)
-    stats: Dict[FaceRecognitionModel, int] = field(default_factory=lambda: {method: 0 for method in DetectionMethod})
+    faces_not_detected: int = 0
     current_segment: FaceSegment = field(default_factory=lambda: FaceSegment(0, 0, []))
 
     def add_frame(self, frame: FrameData):
@@ -56,9 +49,8 @@ class VideoTrackingResult:
                 for frame in segment.frames:
                     results_file.write(
                         f"{frame.frame_number} {frame.timestamp_sec} "
-                        f"{frame.left_eye_width} {frame.left_eye_height} {frame.left_eye_ear} "
-                        f"{frame.right_eye_width} {frame.right_eye_height} {frame.right_eye_ear} "
-                        f"{frame.left_eye_mediapipe_ear} {frame.right_eye_mediapipe_ear} "
+                        f"{frame.left_eye_ear} "
+                        f"{frame.right_eye_ear} "
                         f"{frame.gaze_direction}\n"
                     )
                 results_file.write("\n")

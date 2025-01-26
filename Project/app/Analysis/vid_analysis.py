@@ -1,9 +1,8 @@
 import numpy as np
 from typing import List, Dict, Any
-from app.blink_detection import (BlinkAnalyses, TotalBlinkResults)
+from app.detection import (BlinkAnalyses)
 from app.results import (VideoAnalyses,  VideoTrackingResult, FaceSegment)
-from app.configuration.configuration_model import LandmarkModel, BlinkDetectionParameters
-from app.results.video_anomalies import VideoAnomalies
+from app.configuration.configuration_model import  BlinkDetectionParameters
 
 def analyze_segment(segment: FaceSegment) -> Dict[str, Any]:
 
@@ -12,13 +11,13 @@ def analyze_segment(segment: FaceSegment) -> Dict[str, Any]:
         'duration' : segment.frames[-1].timestamp_sec - segment.frames[0].timestamp_sec
     }
 
-def analyze_video(result: VideoTrackingResult, blink_params: Dict[LandmarkModel, BlinkDetectionParameters]) -> VideoAnalyses:
+def analyze_video(result: VideoTrackingResult, blink_params: BlinkDetectionParameters, fps: int) -> VideoAnalyses:
     segment_analyses = [analyze_segment(segment) for segment in result.segments]
     
     if not segment_analyses:
         return  VideoAnalyses()
 
-    blink_analysis = BlinkAnalyses(result, blink_params)
+    blink_analysis = BlinkAnalyses(result, blink_params, fps)
     blink_result = blink_analysis.analyze_video()
     
     total_segments =  len(result.segments)
@@ -50,11 +49,3 @@ def analyze_video(result: VideoTrackingResult, blink_params: Dict[LandmarkModel,
         avg_segment_duration=avg_segment_duration, 
         blinking_analyses=blink_result)
 
-def detect_anomalies(result: VideoTrackingResult, blink_params: Dict[LandmarkModel, BlinkDetectionParameters]) -> VideoAnomalies:
-    analysis = analyze_video(result, blink_params)
-    blink_analysis = BlinkAnalyses(result, blink_params)
-    blink_analysis.analysis_result = analysis.blinking_analyses
-    dlib_anomalies, mediapipe_anomalies = blink_analysis.detect_anomaly()
-
-    return VideoAnomalies(dlib_anomalies = dlib_anomalies,
-                          mediapipe_anomalies = mediapipe_anomalies)

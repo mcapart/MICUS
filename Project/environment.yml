@@ -3,18 +3,35 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - opencv==4.9.0
-  - dlib==19.24.4
-  - numpy==1.26.4
-  - pillow==10.3.0
-  - click==8.1.7
-  - face-recognition==1.3.0
-  - tqdm==4.66.4
   - matplotlib==3.8.4
+  - tqdm==4.66.4
+  - opencv==4.9.0
+  - pillow==10.3.0
+  - face-recognition==1.3.0
+  - click==8.1.7
+  - dlib==19.24.4
   - scipy
+  - numpy==1.26.4
   - python-dotenv
   - pydantic
   - colorlog
   - scikit-learn
   - multiprocess
   - psutil
+  - pip
+  - pip:
+      - colorlog
+      - face-recognition
+      - flake8
+      - mediapipe
+      - mtcnn
+      - multiprocess
+      - psutil
+      - pydantic
+      - PySocks
+      - python-dotenv
+      - retina-face
+      - scikit-learn
+      - tf_keras
+      - tornado
+      - unicodedata2
