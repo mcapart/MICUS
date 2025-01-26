@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from app.configuration.configuration_model import FaceRecognitionModel
 
 class DetectionMethod(Enum):
@@ -13,6 +13,7 @@ class DetectionMethod(Enum):
 class FrameData:
     frame_number: int
     timestamp_sec: float
+    col_mean: Tuple[int, int, int] # B, G, R
     left_eye_width: float
     left_eye_height: float
     left_eye_ear: float
