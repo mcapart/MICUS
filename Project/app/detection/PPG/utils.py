@@ -49,17 +49,20 @@ def crop_to_boundingbox(bb, frame):
     return frame[y:y + h, x:x + w]
 
 
-fs = 30
-bpf_div = 60 * fs / 2
-b_BPF40220, a_BPF40220 = signal.butter(10, ([40 / bpf_div, 220 / bpf_div]), 'bandpass')
 
 
-def bandpass_filter(sig):
-    return signal.filtfilt(b_BPF40220, a_BPF40220, sig)
+
+
+def bandpass_filter(sig, fps=30, lowcut=0.8, highcut=3.0, order=5):
+    nyquist = 0.5 * fps
+    low = lowcut / nyquist
+    high = highcut / nyquist
+    b, a = signal.butter(order, [low, high], btype='band')
+    return signal.filtfilt(b, a, sig)
 
 
 def dbv(x):
-    return 20 * np.log10(np.abs(x))
+    return 10 * np.log10(np.abs(x))
 
 
 def calculateSNR(hwfft, f, nsig=1):

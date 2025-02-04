@@ -47,13 +47,17 @@ class GazeTracking(object):
             center_x = self.frame.shape[1] / 2
             center_y = self.frame.shape[0] / 2
 
-            if intersection[0] < center_x - 50:
+                  # Use a percentage of the frame dimensions as the threshold
+            threshold_x = self.frame.shape[1] * 0.1  # 10% of the frame width
+            threshold_y = self.frame.shape[0] * 0.1  # 10% of the frame height
+
+            if intersection[0] < center_x - threshold_x:
                 return GazeDirection.LEFT
-            elif intersection[0] > center_x + 50:
+            elif intersection[0] > center_x + threshold_x:
                 return GazeDirection.RIGHT
-            elif intersection[1] < center_y - 50:
+            elif intersection[1] < center_y - threshold_y:
                 return GazeDirection.TOP
-            elif intersection[1] > center_y + 50:
+            elif intersection[1] > center_y + threshold_y:
                 return GazeDirection.BOTTOM
             else:
                 return GazeDirection.CENTER

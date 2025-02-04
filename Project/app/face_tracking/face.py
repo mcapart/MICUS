@@ -59,17 +59,18 @@ class Face:
         """
         self.blink_tracker.analyze(self.landmarks, frame)
         self.gaze_tracker.analyze(self.landmarks, frame)
-        self.ppg_tracker.analyze(self.landmarks, frame)
+        time_stamp = frame_number / self.fps
+        mean_color = self.ppg_tracker.analyze(self.landmarks, frame, time_stamp)
 
         gaze_direction = self.gaze_tracker.get_gaze_direction()
             
         frame_data = FrameData(
                 frame_number=frame_number,
-                timestamp_sec=frame_number / self.fps,
+                timestamp_sec=time_stamp,
                 left_eye_ear=self.blink_tracker.eye_left.ear,
                 right_eye_ear=self.blink_tracker.eye_right.ear,
                 gaze_direction=gaze_direction,
-                col_mean= [0, 0, 0]
+                col_mean=mean_color
             )
         self.results.add_frame(frame_data)
 
@@ -103,20 +104,27 @@ class Face:
         all_gaze_directions: List[GazeDirection]= []
         all_time_stamps: List[float] = []
         segment_gaze_analyses: List[GazeSegmentAnalysesResult] = []
+
+        all_bpm: List[float] = []
         for segment in self.results.segments:
             time_stamps = [x.timestamp_sec for x in segment.frames]
             all_time_stamps.extend(time_stamps)
+
+            #Gaze
             gaze_dir = [x.gaze_direction for x in segment.frames]
             all_gaze_directions.extend(gaze_dir)
             gaze_analysis = analyze_gaze_directions(gaze_dir, time_stamps)
             segment_gaze_analyses.append(gaze_analysis)
+            #PPG
+            all_bpm.extend(self.ppg_tracker.calculate_segment_bpm(segment.frames))
+
 
         overall_gaze_analysis = analyze_gaze_directions(all_gaze_directions, all_time_stamps)
 
         gaze_direction_str = [str(direction) for direction in all_gaze_directions]
 
         plt.figure(figsize=(10, 5))
-        plt.plot(all_time_stamps, gaze_direction_str, marker='o')
+        plt.plot(all_time_stamps[self.ppg_tracker.window:], all_bpm, marker='o')
         plt.xlabel('Time (s)')
         plt.ylabel('Gaze Direction')
         plt.title('Gaze Direction Over Time')

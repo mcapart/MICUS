@@ -77,9 +77,6 @@ def video_analysis(file: str, config: Configuration, progress_callback=None):
             break
 
         frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
-        
-        if config.show_video:
-            cv2.imshow('Face Detection', frame)
 
         found_face = face.detect_landmarks(frame)
  
@@ -93,6 +90,22 @@ def video_analysis(file: str, config: Configuration, progress_callback=None):
             if config.enable_logging:
                 logging.debug(f"Face detected in frame {frame_number}")
             face.analyze(frame, frame_number) 
+             
+        if config.show_video:
+            left_cheek_points = [face.landmarks.landmark[i] for i in [123, 117, 118, 101, 36, 205, 187]]
+            right_cheek_points = [face.landmarks.landmark[i] for i in [330, 347, 346, 352, 411, 425]]
+
+            def draw_landmarks(frame, points, color=(0, 255, 0)):
+                for point in points:
+                    x = int(point.x * frame.shape[1])
+                    y = int(point.y * frame.shape[0])
+                    cv2.circle(frame, (x, y), 4, color, -1)
+
+            # Assuming 'frame' is the current frame from the video or image
+            draw_landmarks(frame, left_cheek_points, color=(0, 255, 0))
+            draw_landmarks(frame, right_cheek_points, color=(0, 0, 255))
+
+            cv2.imshow('Face Detection', frame)
             
         frame_count += 1
         if progress_bar:
