@@ -45,39 +45,34 @@ class GazeTracking(object):
         if intersection:
             # Determine gaze direction based on intersection point
             center_x = self.frame.shape[1] / 2
+            center_y = self.frame.shape[0] / 2
+
             if intersection[0] < center_x - 50:
                 return GazeDirection.LEFT
             elif intersection[0] > center_x + 50:
                 return GazeDirection.RIGHT
+            elif intersection[1] < center_y - 50:
+                return GazeDirection.TOP
+            elif intersection[1] > center_y + 50:
+                return GazeDirection.BOTTOM
             else:
                 return GazeDirection.CENTER
         else:
-            # If lines don't intersect, use the average direction
-            left_direction = GazeDirection.LEFT if left_gaze_line[1][0] - left_gaze_line[0][0] < 0 else GazeDirection.RIGHT
-            right_direction = GazeDirection.LEFT if right_gaze_line[1][0] - right_gaze_line[0][0] < 0 else GazeDirection.RIGHT
-            
-            if left_direction == right_direction:
-                return left_direction
-            else:
-                return GazeDirection.CENTER
+            return GazeDirection.UNKNOWN
 
     def line_intersection(self, line1, line2):
-        x1, y1 = line1[0]
-        x2, y2 = line1[1]
-        x3, y3 = line2[0]
-        x4, y4 = line2[1]
+        xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
+        ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
 
-        denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-        if denominator == 0:
-            return None  # Lines are parallel
+        def det(a, b):
+            return a[0] * b[1] - a[1] * b[0]
 
-        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator
-        u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator
+        div = det(xdiff, ydiff)
+        if div == 0:
+            return None  # Lines do not intersect
 
-        if 0 <= t <= 1 and 0 <= u <= 1:
-            x = x1 + t * (x2 - x1)
-            y = y1 + t * (y2 - y1)
-            return (x, y)
-        else:
-            return None  # Lines don't intersect within the segments
+        d = (det(*line1), det(*line2))
+        x = det(d, xdiff) / div
+        y = det(d, ydiff) / div
+        return x, y
 

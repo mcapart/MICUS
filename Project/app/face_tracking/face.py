@@ -6,6 +6,7 @@ from app.configuration import BlinkDetectionParameters
 from app.results.video_tracking_result import (VideoTrackingResult, FrameData, FaceSegment)
 from app.results.video_analysis import (VideoAnalyses)
 from app.detection import (BlinkTracking, GazeTracking, BlinkAnalyses, analyze_gaze_directions, GazeSegmentAnalysesResult, GazeDirection)
+import matplotlib.pyplot as plt
 
 mp_face_mesh=mp.solutions.face_mesh
 
@@ -109,6 +110,16 @@ class Face:
             segment_gaze_analyses.append(gaze_analysis)
 
         overall_gaze_analysis = analyze_gaze_directions(all_gaze_directions, all_time_stamps)
+
+        gaze_direction_str = [str(direction) for direction in all_gaze_directions]
+
+        plt.figure(figsize=(10, 5))
+        plt.plot(all_time_stamps, gaze_direction_str, marker='o')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Gaze Direction')
+        plt.title('Gaze Direction Over Time')
+        plt.grid(True)
+        plt.show()
 
         return VideoAnalyses( 
             total_segments=total_segments,

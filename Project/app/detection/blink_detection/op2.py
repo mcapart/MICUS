@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.model_selection import ParameterGrid
 from collections import defaultdict
 from app.configuration.configuration_model import Configuration, LandmarkModel, FaceRecognitionModel, BlinkDetectionParameters
-from app.main2 import video_analysis
+from app.main import video_analysis
 import copy
 import json
 import time
