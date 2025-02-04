@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Tuple
 
 # from app.detection.gaze_detection.models.gaze_models import GazeDirection
 
@@ -13,6 +13,8 @@ class FrameData:
     #gaze tracking value
     gaze_direction: str
     #heart rate
+    col_mean: Tuple[int, int, int] # B, G, R
+    
     
 
 @dataclass

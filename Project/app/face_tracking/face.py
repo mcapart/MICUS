@@ -5,7 +5,7 @@ import numpy as np
 from app.configuration import BlinkDetectionParameters
 from app.results.video_tracking_result import (VideoTrackingResult, FrameData, FaceSegment)
 from app.results.video_analysis import (VideoAnalyses)
-from app.detection import (BlinkTracking, GazeTracking, BlinkAnalyses, analyze_gaze_directions, GazeSegmentAnalysesResult, GazeDirection)
+from app.detection import (BlinkTracking, GazeTracking, BlinkAnalyses, analyze_gaze_directions, GazeSegmentAnalysesResult, GazeDirection, PPGTracking)
 import matplotlib.pyplot as plt
 
 mp_face_mesh=mp.solutions.face_mesh
@@ -19,6 +19,7 @@ class Face:
         self.face = None
         self.blink_tracker = BlinkTracking()
         self.gaze_tracker = GazeTracking()
+        self.ppg_tracker = PPGTracking(fps)
         self.results = VideoTrackingResult()
         self.fps = fps
 
@@ -58,6 +59,7 @@ class Face:
         """
         self.blink_tracker.analyze(self.landmarks, frame)
         self.gaze_tracker.analyze(self.landmarks, frame)
+        self.ppg_tracker.analyze(self.landmarks, frame)
 
         gaze_direction = self.gaze_tracker.get_gaze_direction()
             
@@ -66,10 +68,10 @@ class Face:
                 timestamp_sec=frame_number / self.fps,
                 left_eye_ear=self.blink_tracker.eye_left.ear,
                 right_eye_ear=self.blink_tracker.eye_right.ear,
-                gaze_direction=gaze_direction  
+                gaze_direction=gaze_direction,
+                col_mean= [0, 0, 0]
             )
         self.results.add_frame(frame_data)
-
 
     def get_landmarks_mediapipe(self, frame):
         results = self.face_mesh.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
