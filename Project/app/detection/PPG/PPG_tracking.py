@@ -104,7 +104,7 @@ class PPGTracking:
         """
         if len(segment) < self.window:
             print("Segmento demasiado corto para análisis de BPM.")
-            return
+            return []
         mean_colors = np.array([data.col_mean for data in segment])  # B, G, R
         time_stamps = np.array([data.timestamp_sec for data in segment])
         

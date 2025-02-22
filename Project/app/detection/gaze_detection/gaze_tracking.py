@@ -30,7 +30,7 @@ class GazeTracking(object):
         else:
             self.gaze = None
 
-    def get_gaze_direction(self):
+    def get_gaze_intersection(self):
         if self.gaze is None:
             return GazeDirection.UNKNOWN
 
@@ -41,26 +41,52 @@ class GazeTracking(object):
 
         # Check if gaze lines intersect
         intersection = self.line_intersection(left_gaze_line, right_gaze_line)
-
+        return intersection
+        
+    def detect_gaze_direction(self, intersection, frame_size):
         if intersection:
             # Determine gaze direction based on intersection point
-            center_x = self.frame.shape[1] / 2
-            center_y = self.frame.shape[0] / 2
+            center_x = frame_size[1] / 2
+            center_y = frame_size[0] / 2
 
-                  # Use a percentage of the frame dimensions as the threshold
-            threshold_x = self.frame.shape[1] * 0.1  # 10% of the frame width
-            threshold_y = self.frame.shape[0] * 0.1  # 10% of the frame height
+            # Use a percentage of the frame dimensions as the threshold
+            threshold_x = frame_size[1] * 0.1  # 10% of the frame width
+            threshold_y = frame_size[0] * 0.1  # 10% of the frame height
 
+            x_direction = None
             if intersection[0] < center_x - threshold_x:
-                return GazeDirection.LEFT
+                x_direction = GazeDirection.LEFT
             elif intersection[0] > center_x + threshold_x:
-                return GazeDirection.RIGHT
-            elif intersection[1] < center_y - threshold_y:
-                return GazeDirection.TOP
+                x_direction = GazeDirection.RIGHT
+            else :
+                x_direction = GazeDirection.CENTER
+
+            y_direction = None
+            if intersection[1] < center_y - threshold_y:
+                y_direction = GazeDirection.TOP
             elif intersection[1] > center_y + threshold_y:
-                return GazeDirection.BOTTOM
+                y_direction = GazeDirection.BOTTOM
             else:
+                y_direction = GazeDirection.CENTER
+
+            if x_direction == GazeDirection.CENTER and y_direction == GazeDirection.CENTER:
                 return GazeDirection.CENTER
+            elif x_direction == GazeDirection.LEFT and y_direction == GazeDirection.CENTER:
+                return GazeDirection.LEFT
+            elif x_direction == GazeDirection.RIGHT and y_direction == GazeDirection.CENTER:
+                return GazeDirection.RIGHT
+            elif x_direction == GazeDirection.CENTER and y_direction == GazeDirection.TOP:
+                return GazeDirection.TOP
+            elif x_direction == GazeDirection.CENTER and y_direction == GazeDirection.BOTTOM:
+                return GazeDirection.BOTTOM
+            elif x_direction == GazeDirection.LEFT and y_direction == GazeDirection.TOP:
+                return GazeDirection.TOP_LEFT
+            elif x_direction == GazeDirection.RIGHT and y_direction == GazeDirection.TOP:
+                return GazeDirection.TOP_RIGHT
+            elif x_direction == GazeDirection.LEFT and y_direction == GazeDirection.BOTTOM:
+                return GazeDirection.BOTTOM_LEFT
+            elif x_direction == GazeDirection.RIGHT and y_direction == GazeDirection.BOTTOM:
+                return GazeDirection.BOTTOM_RIGHT
         else:
             return GazeDirection.UNKNOWN
 

@@ -94,12 +94,16 @@ def video_analysis(file: str, config: Configuration, progress_callback=None):
         if config.show_video:
             left_cheek_points = [face.landmarks.landmark[i] for i in [123, 117, 118, 101, 36, 205, 187]]
             right_cheek_points = [face.landmarks.landmark[i] for i in [330, 347, 346, 352, 411, 425]]
-
+            current_intersection = face.results.current_segment.frames[-1].gaze_intersection
+            if current_intersection is not None:
+                intersection_x = int(current_intersection[0])
+                intersection_y = int(current_intersection[1])
+                cv2.circle(frame, (intersection_x, intersection_y), 20, (255, 0, 0), -1) 
             def draw_landmarks(frame, points, color=(0, 255, 0)):
                 for point in points:
                     x = int(point.x * frame.shape[1])
                     y = int(point.y * frame.shape[0])
-                    cv2.circle(frame, (x, y), 4, color, -1)
+                    cv2.circle(frame, (x, y), 10, color, -1)
 
             # Assuming 'frame' is the current frame from the video or image
             draw_landmarks(frame, left_cheek_points, color=(0, 255, 0))

@@ -22,6 +22,7 @@ class Face:
         self.ppg_tracker = PPGTracking(fps)
         self.results = VideoTrackingResult()
         self.fps = fps
+        self.frame_size = None
 
         # _predictor is used to get facial landmarks of a given face
         self.face_mesh = mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1,
@@ -57,19 +58,21 @@ class Face:
         """
          Saves the current frame and analyzes the face for landmarks. Updates trackers
         """
+        if not self.frame_size:
+            self.frame_size = frame.shape
         self.blink_tracker.analyze(self.landmarks, frame)
         self.gaze_tracker.analyze(self.landmarks, frame)
         time_stamp = frame_number / self.fps
         mean_color = self.ppg_tracker.analyze(self.landmarks, frame, time_stamp)
 
-        gaze_direction = self.gaze_tracker.get_gaze_direction()
+        gaze_intersection = self.gaze_tracker.get_gaze_intersection()
             
         frame_data = FrameData(
                 frame_number=frame_number,
                 timestamp_sec=time_stamp,
                 left_eye_ear=self.blink_tracker.eye_left.ear,
                 right_eye_ear=self.blink_tracker.eye_right.ear,
-                gaze_direction=gaze_direction,
+                gaze_intersection=gaze_intersection,
                 col_mean=mean_color
             )
         self.results.add_frame(frame_data)
@@ -101,6 +104,7 @@ class Face:
         avg_segment_duration =  np.mean([analysis['duration'] for analysis in segment_analyses])
 
           # Combine gaze distributions
+        all_gaze_intersections: List[tuple[float, float]]= []
         all_gaze_directions: List[GazeDirection]= []
         all_time_stamps: List[float] = []
         segment_gaze_analyses: List[GazeSegmentAnalysesResult] = []
@@ -111,7 +115,8 @@ class Face:
             all_time_stamps.extend(time_stamps)
 
             #Gaze
-            gaze_dir = [x.gaze_direction for x in segment.frames]
+            all_gaze_intersections.extend([x.gaze_intersection for x in segment.frames])
+            gaze_dir = [self.gaze_tracker.detect_gaze_direction(x.gaze_intersection, self.frame_size) for x in segment.frames]
             all_gaze_directions.extend(gaze_dir)
             gaze_analysis = analyze_gaze_directions(gaze_dir, time_stamps)
             segment_gaze_analyses.append(gaze_analysis)
@@ -124,12 +129,14 @@ class Face:
         gaze_direction_str = [str(direction) for direction in all_gaze_directions]
 
         plt.figure(figsize=(10, 5))
-        plt.plot(all_time_stamps[self.ppg_tracker.window:], all_bpm, marker='o')
+        plt.plot(all_time_stamps, gaze_direction_str, marker='o')
         plt.xlabel('Time (s)')
         plt.ylabel('Gaze Direction')
         plt.title('Gaze Direction Over Time')
         plt.grid(True)
         plt.show()
+
+
 
         return VideoAnalyses( 
             total_segments=total_segments,

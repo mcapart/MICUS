@@ -11,7 +11,7 @@ class FrameData:
     left_eye_ear: float
     right_eye_ear: float
     #gaze tracking value
-    gaze_direction: str
+    gaze_intersection: Tuple[float, float] 
     #heart rate
     col_mean: Tuple[int, int, int] # B, G, R
     
@@ -51,7 +51,7 @@ class VideoTrackingResult:
                         f"{frame.frame_number} {frame.timestamp_sec} "
                         f"{frame.left_eye_ear} "
                         f"{frame.right_eye_ear} "
-                        f"{frame.gaze_direction}\n"
+                        f"{frame.gaze_intersection}\n"
                     )
                 results_file.write("\n")
 
