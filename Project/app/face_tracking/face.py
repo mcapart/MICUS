@@ -4,9 +4,8 @@ import mediapipe as mp
 import numpy as np
 from app.configuration import BlinkDetectionParameters
 from app.results.video_tracking_result import (VideoTrackingResult, FrameData, FaceSegment)
-from app.results.video_analysis import (VideoAnalyses)
+from app.results.video_analysis import (VideoAnalyses, VideoAnalysesResults)
 from app.detection import (BlinkTracking, GazeTracking, BlinkAnalyses, analyze_gaze_directions, GazeSegmentAnalysesResult, GazeDirection, PPGTracking)
-import matplotlib.pyplot as plt
 
 mp_face_mesh=mp.solutions.face_mesh
 
@@ -89,7 +88,7 @@ class Face:
             'duration' : segment.frames[-1].timestamp_sec - segment.frames[0].timestamp_sec
         }
     
-    def analyze_results(self, blink_params: BlinkDetectionParameters):
+    def analyze_results(self, blink_params: BlinkDetectionParameters) -> VideoAnalysesResults:
         segment_analyses = [self.analyze_segment(segment) for segment in self.results.segments]
     
         if not segment_analyses:
@@ -105,45 +104,33 @@ class Face:
 
           # Combine gaze distributions
         all_gaze_intersections: List[tuple[float, float]]= []
-        all_gaze_directions: List[GazeDirection]= []
         all_time_stamps: List[float] = []
-        segment_gaze_analyses: List[GazeSegmentAnalysesResult] = []
 
         all_bpm: List[float] = []
+        all_snr: List[float] = []
         for segment in self.results.segments:
             time_stamps = [x.timestamp_sec for x in segment.frames]
             all_time_stamps.extend(time_stamps)
-
             #Gaze
             all_gaze_intersections.extend([x.gaze_intersection for x in segment.frames])
-            gaze_dir = [self.gaze_tracker.detect_gaze_direction(x.gaze_intersection, self.frame_size) for x in segment.frames]
-            all_gaze_directions.extend(gaze_dir)
-            gaze_analysis = analyze_gaze_directions(gaze_dir, time_stamps)
-            segment_gaze_analyses.append(gaze_analysis)
             #PPG
-            all_bpm.extend(self.ppg_tracker.calculate_segment_bpm(segment.frames))
+            bpms, snrs = self.ppg_tracker.calculate_segment_bpm(segment.frames)
+            all_bpm.extend(bpms)
+            all_snr.extend(snrs)
+        
+        unknown_gaze_count = sum(1 for x in all_gaze_intersections if x is None)
+        unknown_gaze_rate = unknown_gaze_count / total_frames if total_frames > 0 else 0
+        avg_bpm = np.mean(all_bpm) if all_bpm else 0
+        avg_snr = np.mean(all_snr) if all_snr else 0
+        # todo avg_snr
 
-
-        overall_gaze_analysis = analyze_gaze_directions(all_gaze_directions, all_time_stamps)
-
-        gaze_direction_str = [str(direction) for direction in all_gaze_directions]
-
-        plt.figure(figsize=(10, 5))
-        plt.plot(all_time_stamps, gaze_direction_str, marker='o')
-        plt.xlabel('Time (s)')
-        plt.ylabel('Gaze Direction')
-        plt.title('Gaze Direction Over Time')
-        plt.grid(True)
-        plt.show()
-
-
-
-        return VideoAnalyses( 
-            total_segments=total_segments,
-            total_frames=total_frames, 
-            total_time=total_duration, 
-            avg_segment_duration=avg_segment_duration, 
-            blinking_analyses=blink_result,
-            segment_gaze_analyses=segment_gaze_analyses,
-            overall_gaze_analysis=overall_gaze_analysis
+        res = VideoAnalysesResults(
+            blinks_rate = blink_result.all_blinks_rate,
+            mean_blink_duration = blink_result.mean_duration,
+            avg_bpm = avg_bpm,
+            avg_snr= avg_snr,
+            unknown_gaze_rate = unknown_gaze_rate,
+            unknown_face_rate = self.results.faces_not_detected / total_frames if total_frames > 0 else 0
         )
+        print(res)
+        return res

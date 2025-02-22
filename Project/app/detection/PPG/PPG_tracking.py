@@ -104,13 +104,14 @@ class PPGTracking:
         """
         if len(segment) < self.window:
             print("Segmento demasiado corto para análisis de BPM.")
-            return []
+            return [], []
         mean_colors = np.array([data.col_mean for data in segment])  # B, G, R
         time_stamps = np.array([data.timestamp_sec for data in segment])
         
         mean_colors_resampled = self._resample_colors(time_stamps, mean_colors)
 
         bpms = []
+        snrs = []
 
         # Calcula BPM en ventanas deslizantes
         for start in range(0, len(segment) - self.window):
@@ -139,7 +140,6 @@ class PPGTracking:
 
             # Calcula SNR
             snr = calculateSNR(normalized_amplitude, bpm_index)
-
-            print(f"Ventana {start}-{start + self.window}: BPM: {bpm:.2f}, SNR: {snr:.2f}")
-        return bpms
+            snrs.append(snr)
+        return bpms, snrs
 

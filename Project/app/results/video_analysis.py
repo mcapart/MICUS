@@ -4,6 +4,13 @@ from typing import List
 
 from app.detection import GazeSegmentAnalysesResult, TotalBlinkResults
 
+    # all_blinks_rate
+    # mean_duration: float = 0
+    # avg bpm
+    # avg snr
+    # rate of unknown gaze unknown gazes / cant frames
+
+
 @dataclass
 class VideoAnalyses:
     blinking_analyses: TotalBlinkResults = field(default_factory=TotalBlinkResults)
@@ -73,8 +80,14 @@ class VideoAnalyses:
             print(f"  All  Blink Rate: {segment.blink_analysis.all_blinks_rate:.2f}")
             print(f"  All  Blink Rate not double blinks: {segment.blink_analysis.blinks_no_double_rate:.2f}")
 
-
-     
+@dataclass
+class VideoAnalysesResults:
+    blinks_rate: float = 0
+    mean_blink_duration: float = 0
+    avg_bpm: float = 0
+    avg_snr: float = 0
+    unknown_gaze_rate: float = 0
+    unknown_face_rate: float = 0
      
 
 

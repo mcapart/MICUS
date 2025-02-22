@@ -74,23 +74,6 @@ class BlinkAnalyses:
         avg_derivative = self.calculate_avg_derivatives(left_eye_ears, right_eye_ears, time_stamps)
         all_peaks = self.calculate_derivatives_peaks(avg_derivative, threshold)
 
-        # plt.figure(figsize=(10, 5))
-        # plt.plot(range(len(left_eye_ears)), left_eye_ears, label='Left Eye EAR')
-        # plt.plot(range(len(right_eye_ears)), right_eye_ears, label='Right Eye EAR')
-        # plt.xlabel('Time (seconds)')
-        # plt.ylabel('Eye Aspect Ratio (EAR)')
-        # plt.title('Average EARs for Left and Right Eyes')
-        # plt.legend()
-        # plt.show()
-
-        # plt.figure(figsize=(10, 5))
-        # plt.plot(range(len(avg_derivative)), avg_derivative, label='DER')
-        # plt.xlabel('Time (seconds)')
-        # plt.ylabel('Eye Aspect Ratio (EAR)')
-        # plt.title('Average EARs for Left and Right Eyes')
-        # plt.legend()
-        # plt.show()
-
         midpoints = (np.array(time_stamps[:-1]) + np.array(time_stamps[1:])) / 2
         peak_times = midpoints[all_peaks]
         pairs = self.calculate_peak_pairs(all_peaks, midpoints, avg_derivative, min_peak_value, cutoff_scale)

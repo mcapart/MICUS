@@ -32,12 +32,12 @@ class GazeTracking(object):
 
     def get_gaze_intersection(self):
         if self.gaze is None:
-            return GazeDirection.UNKNOWN
+            return None
 
         left_gaze_line, right_gaze_line = self.gaze.get_gaze_lines()
 
         if left_gaze_line is None or right_gaze_line is None:
-            return GazeDirection.UNKNOWN
+            return None
 
         # Check if gaze lines intersect
         intersection = self.line_intersection(left_gaze_line, right_gaze_line)

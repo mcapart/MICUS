@@ -82,6 +82,7 @@ def video_analysis(file: str, config: Configuration, progress_callback=None):
  
         
         if not found_face:
+            face.results.faces_not_detected += 1
             if config.enable_logging:
                 logging.debug(f"No face detected in frame {frame_number}")
             handle_no_face_detected(frame, frame_number, video_name, config)
@@ -91,7 +92,7 @@ def video_analysis(file: str, config: Configuration, progress_callback=None):
                 logging.debug(f"Face detected in frame {frame_number}")
             face.analyze(frame, frame_number) 
              
-        if config.show_video:
+        if config.show_video and found_face and face.landmarks is not None:
             left_cheek_points = [face.landmarks.landmark[i] for i in [123, 117, 118, 101, 36, 205, 187]]
             right_cheek_points = [face.landmarks.landmark[i] for i in [330, 347, 346, 352, 411, 425]]
             current_intersection = face.results.current_segment.frames[-1].gaze_intersection
@@ -135,8 +136,7 @@ def video_analysis(file: str, config: Configuration, progress_callback=None):
         logging.info(f"Analyzed {number_of_frames} frames")
         logging.info(f"Faces not found {face.results.faces_not_detected}")
         logging.info(f"No face detection ratio: {face.results.faces_not_detected / number_of_frames}")
-        
-        analysis_results.log()
+    
         
     face.results.completed = True
     return face.results
