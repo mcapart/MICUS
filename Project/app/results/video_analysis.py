@@ -88,6 +88,9 @@ class VideoAnalysesResults:
     avg_snr: float = 0
     unknown_gaze_rate: float = 0
     unknown_face_rate: float = 0
+
+    def get_results(self):
+        return [self.blinks_rate, self.mean_blink_duration, self.avg_bpm, self.avg_snr, self.unknown_gaze_rate, self.unknown_face_rate]
      
 
 

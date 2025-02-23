@@ -12,6 +12,7 @@ from pydantic import TypeAdapter
 
 from app.face_tracking.face import Face
 from app.configuration.configuration_model import Configuration
+from app.results.video_analysis import VideoAnalysesResults
 
 
 def setup_logging(config: Configuration) -> None:
@@ -47,7 +48,7 @@ def setup_logging(config: Configuration) -> None:
             console_handler.setFormatter(console_formatter)
             logger.addHandler(console_handler)
 
-def video_analysis(file: str, config: Configuration, progress_callback=None):
+def video_analysis(file: str, config: Configuration, progress_callback=None) -> VideoAnalysesResults:
     # Set up logging
     setup_logging(config)
     if config.enable_logging:
@@ -131,15 +132,15 @@ def video_analysis(file: str, config: Configuration, progress_callback=None):
     cleanup(cap, progress_bar)
 
 
-    if config.enable_logging:
-        logging.info(f"Video analysis completed for {video_name}")
-        logging.info(f"Analyzed {number_of_frames} frames")
-        logging.info(f"Faces not found {face.results.faces_not_detected}")
-        logging.info(f"No face detection ratio: {face.results.faces_not_detected / number_of_frames}")
+    # if config.enable_logging:
+    #     logging.info(f"Video analysis completed for {video_name}")
+    #     logging.info(f"Analyzed {number_of_frames} frames")
+    #     logging.info(f"Faces not found {face.results.faces_not_detected}")
+    #     logging.info(f"No face detection ratio: {face.results.faces_not_detected / number_of_frames}")
     
         
     face.results.completed = True
-    return face.results
+    return analysis_results
 
 
 def handle_no_face_detected(frame: np.ndarray, frame_number: int, video_name: str, config: Configuration) -> None:

@@ -92,7 +92,7 @@ class Face:
         segment_analyses = [self.analyze_segment(segment) for segment in self.results.segments]
     
         if not segment_analyses:
-            return  VideoAnalyses()
+            return  None
 
         blink_analysis = BlinkAnalyses(self.results, blink_params, self.fps)
         blink_result = blink_analysis.analyze_video()
