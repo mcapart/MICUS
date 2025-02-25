@@ -33,7 +33,7 @@ class BlinkAnalyses:
         all_blinks_rate = np.mean([x.blink_analysis.all_blinks_rate for x in segment_result])
         blinks_no_double_rate = np.mean([x.blink_analysis.blinks_no_double_rate for x in segment_result if x.blink_analysis.blinks_no_double_rate> 0])
         double_blinks = sum(x.blink_analysis.total_double_blinks for x in segment_result)
-        mean_druation = np.mean([x.blink_analysis.durations.mean_duration for x in segment_result ])
+        mean_druation = np.mean([x.blink_analysis.durations.mean_duration for x in segment_result if x.blink_analysis.durations is not None ])
 
         self.analysis_result = TotalBlinkResults(segment_result, 
                                                  blink_count, 
