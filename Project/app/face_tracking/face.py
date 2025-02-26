@@ -4,7 +4,7 @@ import mediapipe as mp
 import numpy as np
 from app.configuration import BlinkDetectionParameters
 from app.results.video_tracking_result import (VideoTrackingResult, FrameData, FaceSegment)
-from app.results.video_analysis import (VideoAnalyses, VideoAnalysesResults)
+from app.results.video_analysis import (VideoAnalysesResults)
 from app.detection import (BlinkTracking, GazeTracking, BlinkAnalyses, analyze_gaze_directions, GazeSegmentAnalysesResult, GazeDirection, PPGTracking)
 
 mp_face_mesh=mp.solutions.face_mesh
@@ -123,12 +123,21 @@ class Face:
         avg_bpm = np.mean(all_bpm) if all_bpm else 0
         avg_snr = np.mean(all_snr) if all_snr else 0
         # todo avg_snr
+        if len(all_bpm) == 0: return None
 
         res = VideoAnalysesResults(
             blinks_rate = blink_result.all_blinks_rate,
             mean_blink_duration = blink_result.mean_duration,
             avg_bpm = avg_bpm,
+            std_bpm= np.std(all_bpm) if all_bpm else 0,
+            median_bpm= np.median(all_bpm) if all_bpm else 0,
+            min_bpm= np.min(all_bpm) if all_bpm else 0,
+            max_bpm= np.max(all_bpm) if all_bpm else 0,
             avg_snr= avg_snr,
+            std_snr= np.std(all_snr) if all_snr else 0,
+            min_snr= np.min(all_snr) if all_snr else 0,
+            max_snr= np.max(all_snr) if all_snr else 0,
+            median_snr= np.median(all_snr) if all_snr else 0,
             unknown_gaze_rate = unknown_gaze_rate,
             unknown_face_rate = self.results.faces_not_detected / total_frames if total_frames > 0 else 0
         )

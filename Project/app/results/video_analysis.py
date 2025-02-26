@@ -86,6 +86,15 @@ class VideoAnalysesResults:
     mean_blink_duration: float = 0
     avg_bpm: float = 0
     avg_snr: float = 0
+    median_bpm: float = 0
+    std_bpm: float = 0
+    min_bpm: float = 0
+    max_bpm: float = 0
+
+    median_snr: float = 0
+    std_snr: float = 0
+    min_snr: float = 0
+    max_snr: float = 0
     unknown_gaze_rate: float = 0
     unknown_face_rate: float = 0
 

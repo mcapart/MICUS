@@ -5,7 +5,7 @@
   "results_directory": "/Users/micacapart/Documents/ITBA/pf-2023b-deepfake-detection/Project/file_res2",
   "image_directory": "/Users/micacapart/Documents/ITBA/pf-2023b-deepfake-detection/Project/file_res2/images",
   "video_file": "/Users/micacapart/Documents/ITBA/Q22023/Proyecto Final/Videos/manipulated_videos/reenact_postprocess/034_W009.mp4",
-  "save_no_face_frames": true,
+  "save_no_face_frames": false,
   "enable_logging": true,
   "log_file": "/Users/micacapart/Documents/ITBA/pf-2023b-deepfake-detection/Project/file_res2/log2.log",
   "blink_detection_parameters": {

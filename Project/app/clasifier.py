@@ -1,6 +1,5 @@
 import json
 import os
-import cv2
 import joblib
 from pydantic import TypeAdapter
 from sklearn.discriminant_analysis import StandardScaler
@@ -15,11 +14,13 @@ from app.main import video_analysis
 def load_videos(video_dir):
     videos = []
     labels = []
-    for subfolder in ['real', 'fake']:
+    for subfolder in ['fake', 'real']:
         subfolder_path = os.path.join(video_dir, subfolder)
         if not os.path.isdir(subfolder_path):
             continue
         for filename in os.listdir(subfolder_path):
+            if not filename.endswith('.mp4'):
+                continue
             label = 1 if subfolder == 'fake' else 0
             video_path = os.path.join(subfolder_path, filename)
             videos.append(video_path)
@@ -37,18 +38,18 @@ def analyze_videos():
         config = TypeAdapter(Configuration).validate_python(data)
     
     all_results = []
+    all_labels = []
     for idx, video in enumerate(videos):
         results = video_analysis(video, config)
-        if results is None:
-            labels.pop(idx)
-        else:
+        if results is not None:
             all_results.append(results)
+            all_labels.append(labels[idx])
 
     
     
     # Flatten the results for classification
     X = [r.get_results() for r in all_results]
-    y = labels 
+    y = all_labels 
 
     joblib.dump((X, y), 'data_results.joblib')
     return X, y
