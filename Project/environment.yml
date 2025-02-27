@@ -35,3 +35,4 @@ dependencies:
       - tf_keras
       - tornado
       - unicodedata2
+      - imblearn
