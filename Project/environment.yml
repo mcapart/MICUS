@@ -36,3 +36,5 @@ dependencies:
       - tornado
       - unicodedata2
       - imblearn
+      - pandas
+      - xgboost
