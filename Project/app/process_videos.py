@@ -11,8 +11,9 @@ from app.main import video_analysis
 def load_videos(video_dir):
     videos = []
     labels = []
-    for subfolder in ['fake', 'real']:
+    for subfolder in ['real', 'fake']:
         subfolder_path = os.path.join(video_dir, subfolder)
+        i = 1
         if not os.path.isdir(subfolder_path):
             continue
         for filename in os.listdir(subfolder_path):
@@ -22,10 +23,13 @@ def load_videos(video_dir):
             video_path = os.path.join(subfolder_path, filename)
             videos.append(video_path)
             labels.append(label)
+            i += label
+            if i > 500:
+                break
     return videos, labels
     
 def analyze_videos():
-    video_dir = "/Users/micacapart/Documents/ITBA/dataset"
+    video_dir = "F:/tesis/clasifier"
     videos, labels = load_videos(video_dir)
 
     config_path = os.path.join(os.path.dirname(__file__), 'configuration', 'params.json')
@@ -39,6 +43,7 @@ def analyze_videos():
     for idx, video in enumerate(videos):
         results = video_analysis(video, config)
         if results is not None:
+            print("index: " + str(idx) + " de: " + str(len(videos)))
             all_results.append(results)
             all_labels.append(labels[idx])
 
@@ -56,3 +61,6 @@ def main():
         analyze_videos()
     else:
         print('videos already analyzed')
+
+if __name__ == "__main__":
+    main()

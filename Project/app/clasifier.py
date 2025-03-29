@@ -37,7 +37,7 @@ classifiers = {
 # Pipeline variant: only SelectKBest.
 def pipeline_kbest(model):
     return ImbPipeline([
-        ('smote', SMOTE(random_state=RANDOM_STATE, sampling_strategy=0.8)),
+        ('smote', SMOTE(random_state=RANDOM_STATE, sampling_strategy='auto')),
         ('scaler', StandardScaler()),
         ('kbest', SelectKBest(score_func=f_classif)),
         ('classifier', model)
@@ -46,7 +46,7 @@ def pipeline_kbest(model):
 # Pipeline variant: SelectKBest followed by PCA.
 def pipeline_kbest_pca(model):
     return ImbPipeline([
-        ('smote', SMOTE(random_state=RANDOM_STATE, sampling_strategy=0.8)),
+        ('smote', SMOTE(random_state=RANDOM_STATE, sampling_strategy='auto')),
         ('scaler', StandardScaler()),
         ('kbest', SelectKBest(score_func=f_classif)),
         ('pca', PCA()),
@@ -58,7 +58,7 @@ def pipeline_kbest_rfe(model):
     # For RFE, we use a RandomForest as the estimator for feature ranking.
     base_estimator = RandomForestClassifier(random_state=RANDOM_STATE, class_weight='balanced')
     return ImbPipeline([
-        ('smote', SMOTE(random_state=RANDOM_STATE, sampling_strategy=0.8)),
+        ('smote', SMOTE(random_state=RANDOM_STATE, sampling_strategy='auto')),
         ('scaler', StandardScaler()),
         ('kbest', SelectKBest(score_func=f_classif)),
         ('rfe', RFE(estimator=base_estimator)),
