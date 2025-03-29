@@ -252,6 +252,22 @@ def main():
     print(f"🔥 Best F1-Score for Class 1: {best_f1_1:.4f} ({best_f1_model})")
     print(f"🔥 Overall Best Model (Combined Score): {best_overall_model} with score {best_overall_score:.4f} with accuracy of {best_overall_model_accuracy:.4f}")
     
+    # Save the best model
+    best_model_name = best_overall_model.split(' - ')[0]
+    best_pipeline_name = best_overall_model.split(' - ')[1]
+    best_pipeline = pipeline_variants[best_pipeline_name](classifiers[best_model_name])
+    
+    # Get the best parameters for this model
+    best_params = results[(best_model_name, best_pipeline_name)][0]
+    
+    # Create and fit the best model with the best parameters
+    best_pipeline.set_params(**best_params)
+    best_pipeline.fit(X_train, y_train)
+    
+    # Save the model
+    joblib.dump(best_pipeline, 'best_model.joblib')
+    print(f"\n✅ Best model saved as 'best_model.joblib'")
+    
     plt.tight_layout()
     plt.show()
 
