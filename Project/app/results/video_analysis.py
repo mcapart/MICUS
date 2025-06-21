@@ -2,7 +2,8 @@ from dataclasses import dataclass, field
 import logging
 from typing import List
 
-from app.detection import GazeSegmentAnalysesResult, TotalBlinkResults
+from app.detection.gaze_detection.gaze_analysis import GazeSegmentAnalysesResult
+from app.detection.blink_detection.analyses.blink_analyses_results import TotalBlinkResults
 
     # all_blinks_rate
     # mean_duration: float = 0

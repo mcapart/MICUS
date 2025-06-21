@@ -6,6 +6,7 @@ from app.configuration.configuration_model import BlinkDetectionParameters
 from app.results.video_tracking_result import  VideoTrackingResult,  FaceSegment
 import matplotlib.pyplot as plt
 
+PEEK_DISTANCE = 5   
 
 class BlinkAnalyses:
 
@@ -144,8 +145,8 @@ class BlinkAnalyses:
         if len(avg_derivative) == 0:
             return np.array([])
         max_derivative = np.max(avg_derivative)
-        pos_peaks, _ = find_peaks(avg_derivative, height=threshold * max_derivative, distance=10)
-        neg_peaks, _ = find_peaks(-avg_derivative, height=threshold * (-np.min(avg_derivative)), distance=10)
+        pos_peaks, _ = find_peaks(avg_derivative, height=threshold * max_derivative, distance=PEEK_DISTANCE)
+        neg_peaks, _ = find_peaks(-avg_derivative, height=threshold * (-np.min(avg_derivative)), distance=PEEK_DISTANCE)
         return np.sort(np.concatenate((pos_peaks, neg_peaks)))
 
     def calculate_peak_pairs(self, all_peaks: np.ndarray, midpoints: np.ndarray, avg_derivative: np.ndarray,
@@ -156,12 +157,14 @@ class BlinkAnalyses:
         min_derivative = np.min(avg_derivative)
         distance = np.abs(max_derivative - min_derivative)
 
-        for i in range(len(all_peaks) - 1):
+        i = 0
+        while i < len(all_peaks) - 1:
             peak1, peak2 = all_peaks[i], all_peaks[i + 1]
             value_1, value_2 = avg_derivative[peak1], avg_derivative[peak2]
             height_diff = np.abs(value_1 - value_2)
             frame_distance = np.abs(peak1 - peak2)
             if frame_distance > self.max_frame_distance:
+                i += 1
                 continue
 
             scaled_cutoff = np.interp(frame_distance, [1, self.max_frame_distance], [1, distance * cutoff_scale])
@@ -172,6 +175,9 @@ class BlinkAnalyses:
             abs(value_1) > min_peak_value and abs(value_2) > min_peak_value and \
             height_diff >= cutoff_distance :
                 blink_pairs.append((midpoints[peak1], midpoints[peak2]))
+                i += 2  # A pair was found, so skip the next peak to prevent re-use
+            else:
+                i += 1 # No pair found, just move to the next peak
 
         return blink_pairs
 
