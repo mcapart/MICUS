@@ -126,7 +126,7 @@ class Face:
         if len(all_bpm) == 0: return None
 
         res = VideoAnalysesResults(
-            blinks_rate = blink_result.all_blinks_rate,
+            blinks_rate = blink_result.blink_rate,
             mean_blink_duration = blink_result.mean_duration,
             avg_bpm = avg_bpm,
             std_bpm= np.std(all_bpm) if all_bpm else 0,

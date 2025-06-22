@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 from app.detection.blink_detection.helpers import (relative, relativeT)
 
+DISTANCE_FROM_EYE_BALL_CENTER = 10
+
 class Gaze:
     def __init__(self, frame, points):
         self.frame = frame
@@ -85,7 +87,7 @@ class Gaze:
         # project pupil image point into 3d world point 
         pupil_world_cord = transformation @ np.array([[pupil[0], pupil[1], 0, 1]]).T
         # 3D gaze point (10 is arbitrary value denoting gaze distance)
-        S = eye_ball_center + (pupil_world_cord - eye_ball_center) * 10
+        S = eye_ball_center + (pupil_world_cord - eye_ball_center) * DISTANCE_FROM_EYE_BALL_CENTER
         # Project a 3D gaze direction onto the image plane.
         (eye_pupil2D, _) = cv2.projectPoints((int(S[0]), int(S[1]), int(S[2])), rotation_vector,
                                  translation_vector, camera_matrix, dist_coeffs)
